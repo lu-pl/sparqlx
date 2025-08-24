@@ -6,6 +6,8 @@
 
 Python library for [httpx](https://www.python-httpx.org/)-based SPARQL Query and Update Operations according to the [SPARQL 1.1 Protocol](https://www.w3.org/TR/sparql11-protocol/).
 
+> WARNING: This project is in an early stage of development and should be used with caution.
+
 ## Features
 
 - **Async Interface**: `asyncio` support with `aquery()` and `AsyncContextManager` API.
@@ -13,11 +15,11 @@ Python library for [httpx](https://www.python-httpx.org/)-based SPARQL Query and
 - **Synchronous Concurrency Wrapper**: Support for concurrent execution of multiple queries from synchronous code with `queries()`
 - **RDFLib Integration**: Direct conversion to [RDFLib](https://github.com/RDFLib/rdflib) SPARQL result representations
 - **Context Managers**: Synchronous and asynchronous context managers for lexical resource management
-- **Client Sharing**: Support for sharing and re-using [httpx](https://www.python-httpx.org/) clients for HTTP connection pooling
+- **Client Sharing**: Support for sharing and re-using `httpx` clients for HTTP connection pooling
 
 
 ## Installation
-`sparqlx` is a [PEP621](https://peps.python.org/pep-0621/)-compliant package.
+`sparqlx` is a [PEP 621](https://peps.python.org/pep-0621/)-compliant package.
 
 The library can be installed by using e.g. [uv](https://docs.astral.sh/uv/) and will be available on PyPI soon.
 
