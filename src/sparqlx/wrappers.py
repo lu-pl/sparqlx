@@ -14,8 +14,9 @@ import warnings
 
 import httpx
 from rdflib import Graph
-from sparqlwrapper.utils.types import _TResponseFormat, _TSPARQLBinding
-from sparqlwrapper.utils.utils import QueryParameters, get_query_parameters
+
+from sparqlx.utils.types import _TResponseFormat, _TSPARQLBinding
+from sparqlx.utils.utils import QueryParameters, get_query_parameters
 
 
 class _SPARQLOperationWrapper(AbstractContextManager, AbstractAsyncContextManager):

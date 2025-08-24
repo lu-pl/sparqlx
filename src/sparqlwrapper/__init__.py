@@ -1,1 +1,0 @@
-from sparqlwrapper.wrappers import SPARQLWrapper

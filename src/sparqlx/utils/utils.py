@@ -6,7 +6,8 @@ from typing import NamedTuple
 import httpx
 from rdflib import BNode, Graph, Literal, URIRef, XSD
 from rdflib.plugins.sparql import prepareQuery
-from sparqlwrapper.utils.types import _TSPARQLBinding, _TSPARQLBindingValue
+
+from sparqlx.utils.types import _TSPARQLBinding, _TSPARQLBindingValue
 
 
 def _to_rdflib_bindings(

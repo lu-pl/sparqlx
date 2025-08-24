@@ -1,10 +1,10 @@
-# SPARQLWrapper ✨📡
+# SPARQLx ✨📡
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
 
-Python library for running SPARQL Query and Update Operations according to the [SPARQL 1.1 Protocol](https://www.w3.org/TR/sparql11-protocol/).
+Python library for [httpx](https://www.python-httpx.org/)-based SPARQL Query and Update Operations according to the [SPARQL 1.1 Protocol](https://www.w3.org/TR/sparql11-protocol/).
 
 ## Features
 
@@ -17,7 +17,7 @@ Python library for running SPARQL Query and Update Operations according to the [
 
 
 ## Installation
-`sparqlwrapper` is a [PEP621](https://peps.python.org/pep-0621/)-compliant package.
+`sparqlx` is a [PEP621](https://peps.python.org/pep-0621/)-compliant package.
 
 The library can be installed by using e.g. [uv](https://docs.astral.sh/uv/) and will be available on PyPI soon.
 
@@ -28,7 +28,7 @@ The library can be installed by using e.g. [uv](https://docs.astral.sh/uv/) and 
 To run a query against an endpoint, instantiate a `SPARQLWrapper` object and call its `query` method:
 
 ```python
-from sparqlwrapper import SPARQLWrapper
+from sparqlx import SPARQLWrapper
 
 sparqlwrapper = SPARQLWrapper(
 	endpoint="https://query.wikidata.org/bigdata/namespace/wdq/sparql"
@@ -64,7 +64,7 @@ An `httpx.Client` can also be supplied by client code; this provides a configura
 
 ```python
 import httpx
-from sparqlwrapper import SPARQLWrapper
+from sparqlx import SPARQLWrapper
 
 client = httpx.Client(timeout=10.0)
 
@@ -82,7 +82,7 @@ print(client.is_closed)  # True
 It is also possible to configure `SPARQLWrapper`-managed clients by passing a `dict` holding `httpx.Client` kwargs to the `client_config` parameter:
 
 ```python
-from sparqlwrapper import SPARQLWrapper
+from sparqlx import SPARQLWrapper
 
 sparqlwrapper = SPARQLWrapper(
 	endpoint="https://query.wikidata.org/bigdata/namespace/wdq/sparql",
@@ -102,7 +102,7 @@ In that case, `SPARQLWrapper` will internally create and manage `httpx.Client` i
 
 ```python
 import asyncio
-from sparqlwrapper import SPARQLWrapper
+from sparqlx import SPARQLWrapper
 
 sparqlwrapper = SPARQLWrapper(
 	endpoint="https://query.wikidata.org/bigdata/namespace/wdq/sparql"
@@ -125,7 +125,7 @@ For client sharing or configuration of internal client instances, pass an `httpx
 `SPARQLWrapper.queries` is a synchronous wrapper around asynchronous code and allows to run multiple queries concurrently from synchronous code.
 
 ```python
-from sparqlwrapper import SPARQLWrapper
+from sparqlx import SPARQLWrapper
 
 sparqlwrapper = SPARQLWrapper(
 	endpoint="https://query.wikidata.org/bigdata/namespace/wdq/sparql"
@@ -149,7 +149,7 @@ HTTP Responses can be streamed using the `SPARQLWrapper.query_stream` and `SPARQ
 
 
 ```python
-from sparqlwrapper import SPARQLWrapper
+from sparqlx import SPARQLWrapper
 
 sparqlwrapper = SPARQLWrapper(
 	endpoint="https://query.wikidata.org/bigdata/namespace/wdq/sparql",
@@ -176,7 +176,7 @@ The streaming method and chunk size (for chunked responses) can be controlled wi
 - Supplied Client: If an httpx client is passed, `SPARQLWrapper` will use that client instance and calling code is responsible for client management. In that case, the context manager will manage the supplied client.
 
 ```python
-from sparqlwrapper import SPARQLWrapper
+from sparqlx import SPARQLWrapper
 
 sparqlwrapper = SPARQLWrapper(
 	endpoint="https://query.wikidata.org/bigdata/namespace/wdq/sparql",
@@ -188,7 +188,7 @@ with sparqlwrapper as context_wrapper:
 
 ```python
 import httpx
-from sparqlwrapper import SPARQLWrapper
+from sparqlx import SPARQLWrapper
 
 client = httpx.Client()
 

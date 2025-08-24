@@ -2,7 +2,8 @@
 
 import httpx
 import pytest
-from sparqlwrapper import SPARQLWrapper
+
+from sparqlx import SPARQLWrapper
 
 
 def test_client_identity():
