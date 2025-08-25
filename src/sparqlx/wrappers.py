@@ -14,7 +14,6 @@ import warnings
 
 import httpx
 from rdflib import Graph
-
 from sparqlx.utils.types import _TResponseFormat, _TSPARQLBinding
 from sparqlx.utils.utils import QueryParameters, get_query_parameters
 
@@ -111,7 +110,7 @@ class _SPARQLQueryWrapper(_SPARQLOperationWrapper):
     def query(
         self,
         query: str,
-        to_rdflib: TLiteral[True],
+        convert: TLiteral[True],
         response_format: _TResponseFormat | str | None = None,
     ) -> Iterator[_TSPARQLBinding] | Graph: ...
 
@@ -119,18 +118,18 @@ class _SPARQLQueryWrapper(_SPARQLOperationWrapper):
     def query(
         self,
         query: str,
-        to_rdflib: TLiteral[False] = False,
+        convert: TLiteral[False] = False,
         response_format: _TResponseFormat | str | None = None,
     ) -> httpx.Response: ...
 
     def query(
         self,
         query: str,
-        to_rdflib: bool = False,
+        convert: bool = False,
         response_format: _TResponseFormat | str | None = None,
     ) -> httpx.Response | Iterator[_TSPARQLBinding] | Graph:
         query_parameters: QueryParameters = get_query_parameters(
-            query=query, to_rdflib=to_rdflib, response_format=response_format
+            query=query, convert=convert, response_format=response_format
         )
 
         with self._managed_client() as client:
@@ -141,7 +140,7 @@ class _SPARQLQueryWrapper(_SPARQLOperationWrapper):
             )
             response.raise_for_status()
 
-        if to_rdflib:
+        if convert:
             return query_parameters.rdflib_converter(response)
         return response
 
@@ -149,7 +148,7 @@ class _SPARQLQueryWrapper(_SPARQLOperationWrapper):
     async def aquery(
         self,
         query: str,
-        to_rdflib: TLiteral[True],
+        convert: TLiteral[True],
         response_format: _TResponseFormat | str | None = None,
     ) -> Iterator[_TSPARQLBinding] | Graph: ...
 
@@ -157,18 +156,18 @@ class _SPARQLQueryWrapper(_SPARQLOperationWrapper):
     async def aquery(
         self,
         query: str,
-        to_rdflib: TLiteral[False] = False,
+        convert: TLiteral[False] = False,
         response_format: _TResponseFormat | str | None = None,
     ) -> httpx.Response: ...
 
     async def aquery(
         self,
         query: str,
-        to_rdflib: bool = False,
+        convert: bool = False,
         response_format: _TResponseFormat | str | None = None,
     ) -> httpx.Response | Iterator[_TSPARQLBinding] | Graph:
         query_parameters: QueryParameters = get_query_parameters(
-            query=query, to_rdflib=to_rdflib, response_format=response_format
+            query=query, convert=convert, response_format=response_format
         )
 
         async with self._managed_aclient() as aclient:
@@ -179,7 +178,7 @@ class _SPARQLQueryWrapper(_SPARQLOperationWrapper):
             )
             response.raise_for_status()
 
-        if to_rdflib:
+        if convert:
             return query_parameters.rdflib_converter(response)
         return response
 
@@ -249,7 +248,7 @@ class _SPARQLQueryWrapper(_SPARQLOperationWrapper):
     def queries(
         self,
         *queries: str,
-        to_rdflib: TLiteral[True],
+        convert: TLiteral[True],
         response_format: _TResponseFormat | str | None = None,
     ) -> Iterator[Iterator[_TSPARQLBinding]] | Iterator[Graph]: ...
 
@@ -257,14 +256,14 @@ class _SPARQLQueryWrapper(_SPARQLOperationWrapper):
     def queries(
         self,
         *queries: str,
-        to_rdflib: TLiteral[False] = False,
+        convert: TLiteral[False] = False,
         response_format: _TResponseFormat | str | None = None,
     ) -> Iterator[httpx.Response]: ...
 
     def queries(
         self,
         *queries: str,
-        to_rdflib: bool = False,
+        convert: bool = False,
         response_format: _TResponseFormat | str | None = None,
     ) -> (
         Iterator[Iterator[_TSPARQLBinding]] | Iterator[httpx.Response] | Iterator[Graph]
@@ -279,7 +278,7 @@ class _SPARQLQueryWrapper(_SPARQLOperationWrapper):
                     tg.create_task(
                         query_component.aquery(
                             query=query,
-                            to_rdflib=to_rdflib,
+                            convert=convert,
                             response_format=response_format,
                         )
                     )

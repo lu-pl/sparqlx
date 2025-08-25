@@ -1,8 +1,6 @@
 """Pytest entry point for SPARQLWrapper httpx client sharing."""
 
 import httpx
-import pytest
-
 from sparqlx import SPARQLWrapper
 
 
@@ -45,6 +43,18 @@ def test_shared_client():
 
     assert all(
         not _client.is_closed
+        for _client in [
+            sparqlwrapper_1.client,
+            sparqlwrapper_1._client,
+            sparqlwrapper_2.client,
+            sparqlwrapper_2._client,
+        ]
+    )
+
+    client.close()
+
+    assert all(
+        _client.is_closed
         for _client in [
             sparqlwrapper_1.client,
             sparqlwrapper_1._client,
