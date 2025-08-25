@@ -6,7 +6,6 @@ from typing import NamedTuple
 import httpx
 from rdflib import BNode, Graph, Literal, URIRef, XSD
 from rdflib.plugins.sparql import prepareQuery
-
 from sparqlx.utils.types import _TSPARQLBinding, _TSPARQLBindingValue
 
 
