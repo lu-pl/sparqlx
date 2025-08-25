@@ -9,7 +9,7 @@ from rdflib.plugins.sparql import prepareQuery
 from sparqlx.utils.types import _TSPARQLBinding, _TSPARQLBindingValue
 
 
-def _to_rdflib_bindings(
+def _convert_bindings(
     response: httpx.Response,
 ) -> Iterator[_TSPARQLBinding]:
     """Get flat dicts from a SPARQL SELECT JSON response."""
@@ -17,7 +17,7 @@ def _to_rdflib_bindings(
     try:
         json_response = response.json()
     except JSONDecodeError as error:
-        error.add_note("Note that to_rdflib=True requires JSON as response format.")
+        error.add_note("Note that convert=True requires JSON as response format.")
         raise error
 
     variables = json_response["head"]["vars"]
@@ -60,7 +60,7 @@ def _to_rdflib_bindings(
         yield dict(_get_binding_pairs(binding))
 
 
-def _to_rdflib_graph(response: httpx.Response) -> Graph:
+def _convert_graph(response: httpx.Response) -> Graph:
     _format, *_ = response.headers["content-type"].split(";")
     graph = Graph().parse(response.content, format=_format)
     return graph
@@ -97,7 +97,7 @@ class QueryParameters(NamedTuple):
 
 
 def get_query_parameters(
-    query: str, to_rdflib: bool = False, response_format: str | None = None
+    query: str, convert: bool = False, response_format: str | None = None
 ) -> QueryParameters:
     query_type = prepareQuery(queryString=query).algebra.name
 
@@ -105,11 +105,11 @@ def get_query_parameters(
         case "SelectQuery" | "AskQuery":
             mime_map = BindingsResultMimeTypeMap()
             _response_format = mime_map[response_format or "json"]
-            rdflib_converter = _to_rdflib_bindings
+            rdflib_converter = _convert_bindings
         case "DescribeQuery" | "ConstructQuery":
             mime_map = GraphResultMimeTypeMap()
             _response_format = mime_map[response_format or "turtle"]
-            rdflib_converter = _to_rdflib_graph
+            rdflib_converter = _convert_graph
         case _:
             raise ValueError(f"Unsupported query type: {query_type}")
 

@@ -48,12 +48,13 @@ The default response formats are JSON for `SELECT` and `ASK` queries and Turtle 
 - any other string; the supplied value will be passed as MIME Type to the `Accept` header.
 
 
-If the `to_rdflib` parameter is set to `True`, `SPARQLWrapper.query` returns
+If the `convert` parameter is set to `True`, `SPARQLWrapper.query` returns
 
-- an `Iterator` of Python dictionaries with dict-values cast to RDFLib objects for `SELECT` and `ASK` queries
+- an `Iterator` of Python dictionaries with dict-values cast to RDFLib objects for `SELECT` queries
+- a Python `bool` for `ASK` queries
 - an `rdflib.Graph` instance for `CONSTRUCT` and `DESCRIBE` queries.
 
-Note that only JSON is supported as a response format for `to_rdflib` conversions on `SELECT` and `ASK` query results.
+Note that only JSON is supported as a response format for `convert` conversions on `SELECT` and `ASK` query results.
 
 
 #### Client Sharing and Configuration
