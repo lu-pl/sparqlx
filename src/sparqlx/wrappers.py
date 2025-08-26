@@ -112,7 +112,7 @@ class _SPARQLQueryWrapper(_SPARQLOperationWrapper):
         query: str,
         convert: TLiteral[True],
         response_format: _TResponseFormat | str | None = None,
-    ) -> Iterator[_TSPARQLBinding] | Graph: ...
+    ) -> Iterator[_TSPARQLBinding] | Graph | bool: ...
 
     @overload
     def query(
@@ -127,7 +127,7 @@ class _SPARQLQueryWrapper(_SPARQLOperationWrapper):
         query: str,
         convert: bool = False,
         response_format: _TResponseFormat | str | None = None,
-    ) -> httpx.Response | Iterator[_TSPARQLBinding] | Graph:
+    ) -> httpx.Response | Iterator[_TSPARQLBinding] | Graph | bool:
         query_parameters: QueryParameters = get_query_parameters(
             query=query, convert=convert, response_format=response_format
         )
@@ -141,7 +141,7 @@ class _SPARQLQueryWrapper(_SPARQLOperationWrapper):
             response.raise_for_status()
 
         if convert:
-            return query_parameters.rdflib_converter(response)
+            return query_parameters.converter(response)
         return response
 
     @overload
@@ -150,7 +150,7 @@ class _SPARQLQueryWrapper(_SPARQLOperationWrapper):
         query: str,
         convert: TLiteral[True],
         response_format: _TResponseFormat | str | None = None,
-    ) -> Iterator[_TSPARQLBinding] | Graph: ...
+    ) -> Iterator[_TSPARQLBinding] | Graph | bool: ...
 
     @overload
     async def aquery(
@@ -165,7 +165,7 @@ class _SPARQLQueryWrapper(_SPARQLOperationWrapper):
         query: str,
         convert: bool = False,
         response_format: _TResponseFormat | str | None = None,
-    ) -> httpx.Response | Iterator[_TSPARQLBinding] | Graph:
+    ) -> httpx.Response | Iterator[_TSPARQLBinding] | Graph | bool:
         query_parameters: QueryParameters = get_query_parameters(
             query=query, convert=convert, response_format=response_format
         )
@@ -179,7 +179,7 @@ class _SPARQLQueryWrapper(_SPARQLOperationWrapper):
             response.raise_for_status()
 
         if convert:
-            return query_parameters.rdflib_converter(response)
+            return query_parameters.converter(response)
         return response
 
     def query_stream[T](
@@ -250,7 +250,7 @@ class _SPARQLQueryWrapper(_SPARQLOperationWrapper):
         *queries: str,
         convert: TLiteral[True],
         response_format: _TResponseFormat | str | None = None,
-    ) -> Iterator[Iterator[_TSPARQLBinding]] | Iterator[Graph]: ...
+    ) -> Iterator[Iterator[_TSPARQLBinding] | Graph | bool]: ...
 
     @overload
     def queries(
@@ -265,9 +265,7 @@ class _SPARQLQueryWrapper(_SPARQLOperationWrapper):
         *queries: str,
         convert: bool = False,
         response_format: _TResponseFormat | str | None = None,
-    ) -> (
-        Iterator[Iterator[_TSPARQLBinding]] | Iterator[httpx.Response] | Iterator[Graph]
-    ):
+    ) -> Iterator[httpx.Response | Iterator[_TSPARQLBinding] | Graph | bool]:
         query_component = _SPARQLQueryWrapper(
             endpoint=self.endpoint, aclient=self._aclient
         )
