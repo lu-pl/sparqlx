@@ -2,11 +2,12 @@
 
 import json
 
+import pytest
 from rdflib import Graph
 from rdflib.compare import isomorphic
 
 from sparqlx import SPARQLWrapper
-from sparqlx.utils.utils import _convert_bindings
+from sparqlx.utils.utils import _convert_ask, _convert_bindings, _convert_graph
 
 
 def test_sparqlwrapper_query_select(fuseki_service):
@@ -49,7 +50,7 @@ def test_sparqlwrapper_query_ask_true(fuseki_service):
     result_converted = sparqlwrapper.query(query, convert=True)
 
     assert result_converted == True
-    assert json.loads(result.content)["boolean"] == True
+    assert _convert_ask(result) == True
 
 
 def test_sparqlwrapper_query_ask_false(fuseki_service):
@@ -62,7 +63,7 @@ def test_sparqlwrapper_query_ask_false(fuseki_service):
     result_converted = sparqlwrapper.query(query, convert=True)
 
     assert result_converted == False
-    assert json.loads(result.content)["boolean"] == False
+    assert _convert_ask(result) == False
 
 
 def test_sparqlwrapper_query_construct(fuseki_service):
@@ -88,7 +89,7 @@ def test_sparqlwrapper_query_construct(fuseki_service):
     """
     expected_graph = Graph().parse(data=ntriples_data)
 
-    assert isomorphic(Graph().parse(data=result.content), expected_graph)
+    assert isomorphic(_convert_graph(result), expected_graph)
     assert isomorphic(result_converted, expected_graph)
 
 

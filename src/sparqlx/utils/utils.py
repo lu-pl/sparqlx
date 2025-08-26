@@ -6,6 +6,7 @@ from typing import NamedTuple
 import httpx
 from rdflib import BNode, Graph, Literal, URIRef, XSD
 from rdflib.plugins.sparql import prepareQuery
+
 from sparqlx.utils.types import _TSPARQLBinding, _TSPARQLBindingValue
 
 
@@ -66,6 +67,10 @@ def _convert_graph(response: httpx.Response) -> Graph:
     return graph
 
 
+def _convert_ask(response: httpx.Response) -> bool:
+    return json.loads(response.content)["boolean"]
+
+
 class _MimeTypeMap(UserDict):
     def __missing__(self, key):
         return key
@@ -113,9 +118,7 @@ def get_query_parameters(
                 raise ValueError()
 
             converter = (
-                _convert_bindings
-                if query_type == "SelectQuery"
-                else lambda response: json.loads(response.content)["boolean"]
+                _convert_bindings if query_type == "SelectQuery" else _convert_ask
             )
 
         case "DescribeQuery" | "ConstructQuery":
