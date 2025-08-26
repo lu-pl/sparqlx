@@ -1,6 +1,6 @@
 from collections import UserDict
 from collections.abc import Callable, Iterator
-from json import JSONDecodeError
+import json
 from typing import NamedTuple
 
 import httpx
@@ -16,7 +16,7 @@ def _convert_bindings(
 
     try:
         json_response = response.json()
-    except JSONDecodeError as error:
+    except json.JSONDecodeError as error:
         error.add_note("Note that convert=True requires JSON as response format.")
         raise error
 
@@ -93,7 +93,7 @@ class GraphResultMimeTypeMap(_MimeTypeMap):
 
 class QueryParameters(NamedTuple):
     response_format: str
-    rdflib_converter: Callable[[httpx.Response], Iterator[_TSPARQLBinding] | Graph]
+    converter: Callable[[httpx.Response], Iterator[_TSPARQLBinding] | Graph]
 
 
 def get_query_parameters(
@@ -105,14 +105,24 @@ def get_query_parameters(
         case "SelectQuery" | "AskQuery":
             mime_map = BindingsResultMimeTypeMap()
             _response_format = mime_map[response_format or "json"]
-            rdflib_converter = _convert_bindings
+
+            if convert and not _response_format in [
+                "application/json",
+                "application/sparql-results+json",
+            ]:
+                raise ValueError()
+
+            converter = (
+                _convert_bindings
+                if query_type == "SelectQuery"
+                else lambda response: json.loads(response.content)["boolean"]
+            )
+
         case "DescribeQuery" | "ConstructQuery":
             mime_map = GraphResultMimeTypeMap()
             _response_format = mime_map[response_format or "turtle"]
-            rdflib_converter = _convert_graph
+            converter = _convert_graph
         case _:
             raise ValueError(f"Unsupported query type: {query_type}")
 
-    return QueryParameters(
-        response_format=_response_format, rdflib_converter=rdflib_converter
-    )
+    return QueryParameters(response_format=_response_format, converter=converter)
