@@ -1,5 +1,7 @@
 # SPARQLx ✨🦋
 
+![tests](https://github.com/lu-pl/sparqlx/actions/workflows/tests.yml/badge.svg)
+[![coverage](https://coveralls.io/repos/github/lu-pl/sparqlx/badge.svg?branch=lupl/setup-test-ci)](https://coveralls.io/github/lu-pl/sparqlx?branch=lupl/setup-test-ci)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
