@@ -15,7 +15,7 @@ import warnings
 import httpx
 from rdflib import Graph
 from sparqlx.utils.types import _TResponseFormat, _TSPARQLBinding
-from sparqlx.utils.utils import QueryParameters, get_query_parameters
+from sparqlx.utils.utils import QueryOperationParameters, get_query_operation_parameters
 
 
 class _SPARQLOperationWrapper(AbstractContextManager, AbstractAsyncContextManager):
@@ -128,20 +128,21 @@ class _SPARQLQueryWrapper(_SPARQLOperationWrapper):
         convert: bool = False,
         response_format: _TResponseFormat | str | None = None,
     ) -> httpx.Response | Iterator[_TSPARQLBinding] | Graph | bool:
-        query_parameters: QueryParameters = get_query_parameters(
+        params: QueryOperationParameters = get_query_operation_parameters(
             query=query, convert=convert, response_format=response_format
         )
 
         with self._managed_client() as client:
             response = client.post(
                 **self._get_request_params(
-                    query=query, response_format=query_parameters.response_format
+                    query=query,
+                    response_format=params.response_format,
                 )
             )
             response.raise_for_status()
 
         if convert:
-            return query_parameters.converter(response)
+            return params.converter(response)
         return response
 
     @overload
@@ -166,20 +167,21 @@ class _SPARQLQueryWrapper(_SPARQLOperationWrapper):
         convert: bool = False,
         response_format: _TResponseFormat | str | None = None,
     ) -> httpx.Response | Iterator[_TSPARQLBinding] | Graph | bool:
-        query_parameters: QueryParameters = get_query_parameters(
+        params: QueryOperationParameters = get_query_operation_parameters(
             query=query, convert=convert, response_format=response_format
         )
 
         async with self._managed_aclient() as aclient:
             response = await aclient.post(
                 **self._get_request_params(
-                    query=query, response_format=query_parameters.response_format
+                    query=query,
+                    response_format=params.response_format,
                 )
             )
             response.raise_for_status()
 
         if convert:
-            return query_parameters.converter(response)
+            return params.converter(response)
         return response
 
     def query_stream[T](
@@ -191,7 +193,7 @@ class _SPARQLQueryWrapper(_SPARQLOperationWrapper):
         ] = httpx.Response.iter_bytes,
         chunk_size: int | None = None,
     ) -> Iterator[T]:
-        query_parameters: QueryParameters = get_query_parameters(
+        params: QueryOperationParameters = get_query_operation_parameters(
             query=query, response_format=response_format
         )
 
@@ -205,7 +207,8 @@ class _SPARQLQueryWrapper(_SPARQLOperationWrapper):
             with client.stream(
                 "POST",
                 **self._get_request_params(
-                    query=query, response_format=query_parameters.response_format
+                    query=query,
+                    response_format=params.response_format,
                 ),
             ) as response:
                 response.raise_for_status()
@@ -222,7 +225,7 @@ class _SPARQLQueryWrapper(_SPARQLOperationWrapper):
         ] = httpx.Response.aiter_bytes,
         chunk_size: int | None = None,
     ) -> AsyncIterator[T]:
-        query_parameters: QueryParameters = get_query_parameters(
+        params: QueryOperationParameters = get_query_operation_parameters(
             query=query, response_format=response_format
         )
 
@@ -236,7 +239,8 @@ class _SPARQLQueryWrapper(_SPARQLOperationWrapper):
             async with aclient.stream(
                 "POST",
                 **self._get_request_params(
-                    query=query, response_format=query_parameters.response_format
+                    query=query,
+                    response_format=params.response_format,
                 ),
             ) as response:
                 response.raise_for_status()
@@ -296,7 +300,7 @@ class _SPARQLQueryWrapper(_SPARQLOperationWrapper):
         }
 
 
-class _SPARQLUpdateWrapper(_SPARQLOperationWrapper):
+class _SPARQLUpdateWrapper(_SPARQLOperationWrapper):  # pragma: no cover
     def update(
         self,
         update_request: str,

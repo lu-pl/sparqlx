@@ -1,12 +1,11 @@
 from collections import UserDict
 from collections.abc import Callable, Iterator
 import json
-from typing import NamedTuple
+from typing import Literal as TypingLiteral, NamedTuple
 
 import httpx
 from rdflib import BNode, Graph, Literal, URIRef, XSD
 from rdflib.plugins.sparql import prepareQuery
-
 from sparqlx.utils.types import _TSPARQLBinding, _TSPARQLBindingValue
 
 
@@ -90,21 +89,29 @@ class GraphResultMimeTypeMap(_MimeTypeMap):
     def __init__(self):
         self.data = {
             "turtle": "text/turtle",
-            "xml": "application/rdf+xml",
+            "xml": "application/xml",
             "ntriples": "application/n-triples",
             "json-ld": "application/ld+json",
         }
 
 
-class QueryParameters(NamedTuple):
+bindings_format_map = BindingsResultMimeTypeMap()
+graph_format_map = GraphResultMimeTypeMap()
+
+
+class QueryOperationParameters(NamedTuple):
     response_format: str
     converter: Callable[[httpx.Response], Iterator[_TSPARQLBinding] | Graph]
 
 
-def get_query_parameters(
+def get_query_type(query: str) -> str:
+    return prepareQuery(queryString=query).algebra.name
+
+
+def get_query_operation_parameters(
     query: str, convert: bool = False, response_format: str | None = None
-) -> QueryParameters:
-    query_type = prepareQuery(queryString=query).algebra.name
+) -> QueryOperationParameters:
+    query_type = get_query_type(query)
 
     match query_type:
         case "SelectQuery" | "AskQuery":
@@ -128,4 +135,6 @@ def get_query_parameters(
         case _:
             raise ValueError(f"Unsupported query type: {query_type}")
 
-    return QueryParameters(response_format=_response_format, converter=converter)
+    return QueryOperationParameters(
+        response_format=_response_format, converter=converter
+    )
