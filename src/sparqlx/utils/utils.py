@@ -16,7 +16,9 @@ def _convert_bindings(
 
     try:
         json_response = response.json()
-    except json.JSONDecodeError as error:
+    except (
+        json.JSONDecodeError
+    ) as error:  # pragma: no cover ; this should be unreachable
         error.add_note("Note that convert=True requires JSON as response format.")
         raise error
 
@@ -122,7 +124,8 @@ def get_query_operation_parameters(
                 "application/json",
                 "application/sparql-results+json",
             ]:
-                raise ValueError()
+                msg = "JSON response format required for convert=True on SELECT and ASK query results."
+                raise ValueError(msg)
 
             converter = (
                 _convert_bindings if query_type == "SelectQuery" else _convert_ask
@@ -132,7 +135,7 @@ def get_query_operation_parameters(
             mime_map = GraphResultMimeTypeMap()
             _response_format = mime_map[response_format or "turtle"]
             converter = _convert_graph
-        case _:
+        case _:  # pragma: no cover
             raise ValueError(f"Unsupported query type: {query_type}")
 
     return QueryOperationParameters(
