@@ -72,33 +72,27 @@ def _convert_ask(response: httpx.Response) -> bool:
     return json.loads(response.content)["boolean"]
 
 
-class _MimeTypeMap(UserDict):
+class MimeTypeMap(UserDict):
     def __missing__(self, key):
         return key
 
 
-class BindingsResultMimeTypeMap(_MimeTypeMap):
-    def __init__(self):
-        self.data = {
-            "json": "application/sparql-results+json",
-            "xml": "application/sparql-results+xml",
-            "csv": "text/csv",
-            "tsv": "text/tab-separated-values",
-        }
-
-
-class GraphResultMimeTypeMap(_MimeTypeMap):
-    def __init__(self):
-        self.data = {
-            "turtle": "text/turtle",
-            "xml": "application/xml",
-            "ntriples": "application/n-triples",
-            "json-ld": "application/ld+json",
-        }
-
-
-bindings_format_map = BindingsResultMimeTypeMap()
-graph_format_map = GraphResultMimeTypeMap()
+bindings_format_map = MimeTypeMap(
+    {
+        "json": "application/sparql-results+json",
+        "xml": "application/sparql-results+xml",
+        "csv": "text/csv",
+        "tsv": "text/tab-separated-values",
+    }
+)
+graph_format_map = MimeTypeMap(
+    {
+        "turtle": "text/turtle",
+        "xml": "application/xml",
+        "ntriples": "application/n-triples",
+        "json-ld": "application/ld+json",
+    }
+)
 
 
 class QueryOperationParameters(NamedTuple):
@@ -117,8 +111,7 @@ def get_query_operation_parameters(
 
     match query_type:
         case "SelectQuery" | "AskQuery":
-            mime_map = BindingsResultMimeTypeMap()
-            _response_format = mime_map[response_format or "json"]
+            _response_format = bindings_format_map[response_format or "json"]
 
             if convert and not _response_format in [
                 "application/json",
@@ -132,8 +125,7 @@ def get_query_operation_parameters(
             )
 
         case "DescribeQuery" | "ConstructQuery":
-            mime_map = GraphResultMimeTypeMap()
-            _response_format = mime_map[response_format or "turtle"]
+            _response_format = graph_format_map[response_format or "turtle"]
             converter = _convert_graph
         case _:  # pragma: no cover
             raise ValueError(f"Unsupported query type: {query_type}")
