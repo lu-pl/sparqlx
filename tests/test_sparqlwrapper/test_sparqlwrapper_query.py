@@ -34,7 +34,7 @@ from data.queries import (
 async def test_sparqlwrapper_query_select(method, fuseki_service):
     attr_getter = operator.attrgetter(method)
 
-    endpoint: str = fuseki_service
+    endpoint: str = fuseki_service.sparql_endpoint
     sparqlwrapper = SPARQLWrapper(endpoint=endpoint)
 
     if method == "aquery":
@@ -57,7 +57,7 @@ async def test_sparqlwrapper_query_select(method, fuseki_service):
 async def test_sparqlwrapper_query_ask_true(method, fuseki_service):
     attr_getter = operator.attrgetter(method)
 
-    endpoint: str = fuseki_service
+    endpoint: str = fuseki_service.sparql_endpoint
     sparqlwrapper = SPARQLWrapper(endpoint=endpoint)
 
     if method == "aquery":
@@ -78,7 +78,7 @@ async def test_sparqlwrapper_query_ask_true(method, fuseki_service):
 async def test_sparqlwrapper_query_ask_false(method, fuseki_service):
     attr_getter = operator.attrgetter(method)
 
-    endpoint: str = fuseki_service
+    endpoint: str = fuseki_service.sparql_endpoint
     sparqlwrapper = SPARQLWrapper(endpoint=endpoint)
 
     if method == "aquery":
@@ -99,7 +99,7 @@ async def test_sparqlwrapper_query_ask_false(method, fuseki_service):
 async def test_sparqlwrapper_query_construct(method, fuseki_service):
     attr_getter = operator.attrgetter(method)
 
-    endpoint: str = fuseki_service
+    endpoint: str = fuseki_service.sparql_endpoint
     sparqlwrapper = SPARQLWrapper(endpoint=endpoint)
 
     if method == "aquery":
@@ -130,7 +130,7 @@ async def test_sparqlwrapper_query_construct(method, fuseki_service):
 async def test_sparqlwrapper_query_describe(method, fuseki_service):
     attr_getter = operator.attrgetter(method)
 
-    endpoint: str = fuseki_service
+    endpoint: str = fuseki_service.sparql_endpoint
     sparqlwrapper = SPARQLWrapper(endpoint=endpoint)
 
     if method == "aquery":
@@ -161,7 +161,7 @@ async def test_sparqlwrapper_query_binding_result_formats(
     """Run SELECT and ASK queries with bindings result formats."""
     attr_getter = operator.attrgetter(method)
 
-    endpoint: str = fuseki_service
+    endpoint: str = fuseki_service.sparql_endpoint
     sparqlwrapper = SPARQLWrapper(endpoint=endpoint)
 
     if method == "aquery":
@@ -186,7 +186,7 @@ async def test_sparqlwrapper_query_graph_result_formats(
     """Run CONSTRUCT and DESCRIBE queries with graph result formats."""
     attr_getter = operator.attrgetter(method)
 
-    endpoint: str = fuseki_service
+    endpoint: str = fuseki_service.sparql_endpoint
     sparqlwrapper = SPARQLWrapper(endpoint=endpoint)
 
     if method == "aquery":
@@ -209,7 +209,7 @@ async def test_sparqlwrapper_query_graph_result_formats(
 
 @pytest.mark.asyncio
 async def test_sparqlwrapper_warn_open_client(fuseki_service):
-    endpoint: str = fuseki_service
+    endpoint: str = fuseki_service.sparql_endpoint
 
     client = httpx.Client()
     aclient = httpx.AsyncClient()
@@ -231,7 +231,7 @@ async def test_sparqlwrapper_warn_open_client(fuseki_service):
 
 @pytest.mark.asyncio
 async def test_sparql_wrapper_context_managers(fuseki_service):
-    endpoint: str = fuseki_service
+    endpoint: str = fuseki_service.sparql_endpoint
 
     client = httpx.Client()
     aclient = httpx.AsyncClient()
@@ -259,7 +259,7 @@ async def test_sparql_wrapper_context_managers(fuseki_service):
 )
 @pytest.mark.asyncio
 async def test_sparqlwrapper_streaming(query, fuseki_service):
-    endpoint: str = fuseki_service
+    endpoint: str = fuseki_service.sparql_endpoint
     sparqlwrapper = SPARQLWrapper(endpoint=endpoint)
 
     stream = sparqlwrapper.query_stream(query, chunk_size=1)
@@ -282,7 +282,7 @@ async def test_sparqlwrapper_streaming(query, fuseki_service):
     ],
 )
 def test_sparqlwrapper_queries(query, fuseki_service):
-    endpoint: str = fuseki_service
+    endpoint: str = fuseki_service.sparql_endpoint
     sparqlwrapper = SPARQLWrapper(endpoint=endpoint)
 
     queries: list[str] = [query for _ in range(5)]
@@ -305,7 +305,7 @@ def test_sparqlwrapper_queries(query, fuseki_service):
 
 def test_sparqlwrapper_python_cast_types(fuseki_service):
     """Run a query featuring several RDF types and check for Python-casting."""
-    endpoint: str = fuseki_service
+    endpoint: str = fuseki_service.sparql_endpoint
     sparqlwrapper = SPARQLWrapper(endpoint=endpoint)
 
     result = sparqlwrapper.query(select_query_types, convert=True)
@@ -325,7 +325,7 @@ def test_sparqlwrapper_python_cast_types(fuseki_service):
 
 def test_sparqlwrapper_python_cast_bnodes(fuseki_service):
     """Run a query which mocks a BNode and check for BNode-casting."""
-    endpoint: str = fuseki_service
+    endpoint: str = fuseki_service.sparql_endpoint
     sparqlwrapper = SPARQLWrapper(endpoint=endpoint)
 
     result, *_ = sparqlwrapper.query(select_query_bnode, convert=True)
