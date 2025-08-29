@@ -97,7 +97,7 @@ graph_format_map = MimeTypeMap(
 
 class QueryOperationParameters(NamedTuple):
     response_format: str
-    converter: Callable[[httpx.Response], Iterator[_TSPARQLBinding] | Graph]
+    converter: Callable[[httpx.Response], Iterator[_TSPARQLBinding] | Graph | bool]
 
 
 def get_query_type(query: str) -> str:
