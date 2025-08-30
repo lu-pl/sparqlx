@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/lu-pl/sparqlx/compare/v0.1.0...v0.1.1) (2025-08-30)
+
+
+### Bug Fixes
+
+* add bool to convert union type ([3ed4618](https://github.com/lu-pl/sparqlx/commit/3ed46185b834b0eb799f37d64da0a7738ecbf32a))
+
 ## 0.1.0 (2025-08-28)
 
 
