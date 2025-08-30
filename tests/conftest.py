@@ -1,13 +1,16 @@
 """Global fixture definitions for the SPARQLx test suite."""
 
-import httpx
+from collections.abc import Iterator
+
 import pytest
+
+import httpx
 from testcontainers.core.container import DockerContainer
 from testcontainers.core.waiting_utils import wait_for_logs
 
 
-class Endpoints:
-    """Data Container for SPARQL and Graphstore Endpoints.
+class FusekiEndpoints:
+    """Data Container for Fuseki SPARQL and Graphstore Endpoints.
 
     Endpoints are computed given a host and port.
     The class implements the Iterable protocol for unpacking.
@@ -24,8 +27,8 @@ class Endpoints:
 
 
 @pytest.fixture(scope="session")
-def fuseki_service():
-    """Fixture that starts a Fuseki Triplestore container and exposes an Endpoint object"""
+def fuseki_service() -> Iterator[FusekiEndpoints]:
+    """Fixture that starts a Fuseki Triplestore container and exposes an Endpoint object."""
     with (
         DockerContainer("secoresearch/fuseki")
         .with_exposed_ports(3030)
@@ -36,13 +39,13 @@ def fuseki_service():
         host = container.get_container_host_ip()
         port = container.get_exposed_port(3030)
 
-        endpoints = Endpoints(host=host, port=port)
+        endpoints = FusekiEndpoints(host=host, port=port)
         yield endpoints
 
 
 @pytest.fixture(scope="function")
-def fuseki_service_graph(fuseki_service):
-    """Higher-order Fixture that ingests an RDF graph into a running Fuseki container.
+def fuseki_service_graph(fuseki_service) -> Iterator[FusekiEndpoints]:
+    """Dependent Fixture that ingests an RDF graph into a running Fuseki container.
 
     Note that, since `tdb:unionDefaultGraph` is set to `true` in the image,
     data ingest via the Graphstore Protocol has to target a named graph.
