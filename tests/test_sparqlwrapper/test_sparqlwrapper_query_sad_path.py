@@ -1,14 +1,14 @@
 """Basic sad path tests for SPARQLWrapper."""
 
 import pytest
+
+from data.queries import ask_query_false, ask_query_true, select_query_xy_values
 from sparqlx import SPARQLWrapper
 from sparqlx.utils.utils import bindings_format_map
 
-from data.queries import ask_false_query, ask_true_query, select_values_query
-
 
 @pytest.mark.parametrize(
-    "query", [select_values_query, ask_true_query, ask_false_query]
+    "query", [select_query_xy_values, ask_query_true, ask_query_false]
 )
 @pytest.mark.parametrize(
     "response_format", filter(lambda k: k != "json", bindings_format_map.keys())
