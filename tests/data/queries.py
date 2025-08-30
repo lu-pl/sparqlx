@@ -1,6 +1,6 @@
 """SPARQL queries and update requests for SPARQLx testing."""
 
-select_values_query = """
+select_query_xy_values = """
     select ?x ?y
     where {
       values (?x ?y) {
@@ -34,7 +34,7 @@ where {
 }
 """
 
-ask_true_query = """
+ask_query_true = """
     ask where {
       values (?x ?y) {
         (1 2)
@@ -43,10 +43,10 @@ ask_true_query = """
     }
 """
 
-ask_false_query = "ask where {filter(false)}"
+ask_query_false = "ask where {filter(false)}"
 
 
-construct_values_query = """
+construct_query_x_values = """
     construct {<urn:s> <urn:p> ?x}
     where {
     values ?x {
