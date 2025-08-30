@@ -6,7 +6,7 @@
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
 
-Python library for [httpx](https://www.python-httpx.org/)-based SPARQL Query and Update Operations according to the [SPARQL 1.1 Protocol](https://www.w3.org/TR/sparql11-protocol/).
+Python library for [httpx](https://www.python-httpx.org/)-based SPARQL Query and Update Operations according to the [SPARQL 1.2 Protocol](https://www.w3.org/TR/sparql12-protocol/).
 
 > WARNING: This project is in an early stage of development and should be used with caution.
 
@@ -21,9 +21,12 @@ Python library for [httpx](https://www.python-httpx.org/)-based SPARQL Query and
 
 
 ## Installation
-`sparqlx` is a [PEP 621](https://peps.python.org/pep-0621/)-compliant package.
+`sparqlx` is a [PEP 621](https://peps.python.org/pep-0621/)-compliant package and available on PyPI.
 
-The library can be installed by using e.g. [uv](https://docs.astral.sh/uv/) and will be available on PyPI soon.
+```shell
+pip install sparqlx
+```
+
 
 ## Usage
 
@@ -56,16 +59,16 @@ If the `convert` parameter is set to `True`, `SPARQLWrapper.query` returns
 - a Python `bool` for `ASK` queries
 - an `rdflib.Graph` instance for `CONSTRUCT` and `DESCRIBE` queries.
 
-Note that only JSON is supported as a response format for `convert` conversions on `SELECT` and `ASK` query results.
+Note that only JSON is supported as a response format for `convert=True` on `SELECT` and `ASK` query results.
 
 
 #### Client Sharing and Configuration
 
 By default, `SPARQLWrapper` creates and manages `httpx.Client` instances internally.
 
-An `httpx.Client` can also be supplied by client code; this provides a configuration interface and allows for HTTP connection pooling.
+An `httpx.Client` can also be supplied by user code; this provides a configuration interface and allows for HTTP connection pooling.
 
-> Note that if an `httpx.Client` is supplied to `SPARQLWrapper`, client code is responsible for managing (closing) the client.
+> Note that if an `httpx.Client` is supplied to `SPARQLWrapper`, user code is responsible for managing (closing) the client.
 
 ```python
 import httpx
@@ -210,12 +213,15 @@ print(client.is_closed)  # True
 
 ---
 ### Update Operations
-SPARQL 1.1 Protocol Update Operations are supported and follow the same API structure as Query Operations.
 
-The following methods implement SPARQL Update Operations:
+> Note: Update Operations are not yet implemented.
+
+Support for SPARQL 1.2 Protocol [Update Operations](https://www.w3.org/TR/sparql12-protocol/#update-operation) is planned and will follow the same API structure as Query Operations.
+
+The following methods will implement SPARQL Update Operations:
 
 - `SPARQLWrapper.update`
 - `SPARQLWrapper.aupdate`
 - `SPARQLWrapper.updates`
 
-Update Operations can also be run from a `SPARQLWrapper` context manager.
+Update Operations will also be available via the `SPARQLWrapper` context manager interface.
