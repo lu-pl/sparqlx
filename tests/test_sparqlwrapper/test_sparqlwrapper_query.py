@@ -1,11 +1,27 @@
 """Pytest entry point for basic SPARQLWrapper Query Operation tests."""
 
 import asyncio
+import asyncio
+from collections.abc import Callable
+import datetime
 import datetime
 from decimal import Decimal
+from decimal import Decimal
 import operator
+import operator
+from typing import NamedTuple
+from typing import Any
 
+import httpx
 import pytest
+import pytest
+from rdflib import BNode, Graph, Literal, URIRef, XSD
+from rdflib import BNode, Graph, Literal, URIRef, XSD
+from rdflib.compare import isomorphic
+from rdflib.compare import isomorphic
+from sparqlx import SPARQLWrapper
+from sparqlx import SPARQLWrapper
+from sparqlx.utils.utils import bindings_format_map, graph_format_map
 
 from data.queries import (
     ask_query_false,
@@ -16,141 +32,101 @@ from data.queries import (
     select_query_types,
     select_query_xy_values,
 )
-import httpx
-from rdflib import BNode, Graph, Literal, URIRef, XSD
-from rdflib.compare import isomorphic
-from sparqlx import SPARQLWrapper
-from sparqlx.utils.utils import (
-    _convert_ask,
-    _convert_bindings,
-    _convert_graph,
-    bindings_format_map,
-    graph_format_map,
+from data.queries import (
+    ask_query_false,
+    ask_query_true,
+    construct_query_x_values,
+    describe_query,
+    select_query_bnode,
+    select_query_types,
+    select_query_xy_values,
 )
 
 
-@pytest.mark.parametrize("method", ["query", "aquery"])
-@pytest.mark.asyncio
-async def test_sparqlwrapper_query_select(method, fuseki_service):
-    attr_getter = operator.attrgetter(method)
-
-    endpoint: str = fuseki_service.sparql_endpoint
-    sparqlwrapper = SPARQLWrapper(endpoint=endpoint)
-
-    if method == "aquery":
-        result = await attr_getter(sparqlwrapper)(select_query_xy_values)
-        result_converted = await attr_getter(sparqlwrapper)(
-            select_query_xy_values, convert=True
-        )
-    else:
-        result = attr_getter(sparqlwrapper)(select_query_xy_values)
-        result_converted = attr_getter(sparqlwrapper)(
-            select_query_xy_values, convert=True
-        )
-
-    expected = [{"x": 1, "y": 2}, {"x": 3, "y": 4}]
-
-    assert list(result_converted) == expected
-    assert list(_convert_bindings(result)) == expected
+class QueryOperationParameter(NamedTuple):
+    query: str
+    expected: bool | list[dict] | Graph
+    compare: Callable[[Any, Any], bool] = operator.eq
 
 
-@pytest.mark.parametrize("method", ["query", "aquery"])
-@pytest.mark.asyncio
-async def test_sparqlwrapper_query_ask_true(method, fuseki_service):
-    attr_getter = operator.attrgetter(method)
+async def acall(obj: Any, method: str, *args, **kwargs):
+    f = getattr(obj, method)
 
-    endpoint: str = fuseki_service.sparql_endpoint
-    sparqlwrapper = SPARQLWrapper(endpoint=endpoint)
-
-    if method == "aquery":
-        result = await attr_getter(sparqlwrapper)(ask_query_true)
-        result_converted = await attr_getter(sparqlwrapper)(
-            ask_query_true, convert=True
-        )
-    else:
-        result = attr_getter(sparqlwrapper)(ask_query_true)
-        result_converted = attr_getter(sparqlwrapper)(ask_query_true, convert=True)
-
-    assert result_converted == True
-    assert _convert_ask(result) == True
+    return (
+        await f(*args, **kwargs)
+        if asyncio.iscoroutinefunction(f)
+        else f(*args, **kwargs)
+    )
 
 
-@pytest.mark.parametrize("method", ["query", "aquery"])
-@pytest.mark.asyncio
-async def test_sparqlwrapper_query_ask_false(method, fuseki_service):
-    attr_getter = operator.attrgetter(method)
+ntriples_data = """
+<urn:s> <urn:p> "1"^^<http://www.w3.org/2001/XMLSchema#integer> .
+<urn:s> <urn:p> "3"^^<http://www.w3.org/2001/XMLSchema#integer> .
+<urn:s> <urn:p> "2"^^<http://www.w3.org/2001/XMLSchema#integer> .
+"""
+expected_graph = Graph().parse(data=ntriples_data)
 
-    endpoint: str = fuseki_service.sparql_endpoint
-    sparqlwrapper = SPARQLWrapper(endpoint=endpoint)
 
-    if method == "aquery":
-        result = await attr_getter(sparqlwrapper)(ask_query_false)
-        result_converted = await attr_getter(sparqlwrapper)(
-            ask_query_false, convert=True
-        )
-    else:
-        result = attr_getter(sparqlwrapper)(ask_query_false)
-        result_converted = attr_getter(sparqlwrapper)(ask_query_false, convert=True)
-
-    assert result_converted == False
-    assert _convert_ask(result) == False
+params = [
+    QueryOperationParameter(
+        query=select_query_xy_values,
+        expected=[{"x": 1, "y": 2}, {"x": 3, "y": 4}],
+        compare=lambda x, y: list(x) == list(y),
+    ),
+    QueryOperationParameter(query=ask_query_true, expected=True),
+    QueryOperationParameter(query=ask_query_false, expected=False),
+    QueryOperationParameter(
+        query=construct_query_x_values, expected=expected_graph, compare=isomorphic
+    ),
+    #
+    QueryOperationParameter(
+        query=select_query_types,
+        expected=[
+            {"x": 2},
+            {"x": Decimal("2.2")},
+            {"x": None},
+            {"x": URIRef("https://test.uri")},
+            {"x": datetime.date(2024, 1, 1)},
+            {"x": Literal("2024", datatype=XSD.gYear)},
+            {"x": Literal("2024-01", datatype=XSD.gYearMonth)},
+        ],
+        compare=lambda x, y: list(x) == list(y),
+    ),
+    QueryOperationParameter(
+        query=select_query_bnode,
+        expected=[{"x": BNode()}],
+        compare=lambda x, y: all(
+            isinstance(v, BNode) for v in map(lambda r: list(r)[0]["x"], [x, y])
+        ),
+    ),
+    QueryOperationParameter(query=describe_query, expected=Graph(), compare=isomorphic),
+]
 
 
 @pytest.mark.parametrize("method", ["query", "aquery"])
+@pytest.mark.parametrize("param", params)
 @pytest.mark.asyncio
-async def test_sparqlwrapper_query_construct(method, fuseki_service):
-    attr_getter = operator.attrgetter(method)
-
+async def test_sparqlwrapper_query(method, param, fuseki_service):
     endpoint: str = fuseki_service.sparql_endpoint
     sparqlwrapper = SPARQLWrapper(endpoint=endpoint)
 
-    if method == "aquery":
-        result = await attr_getter(sparqlwrapper)(construct_query_x_values)
-        result_converted = await attr_getter(sparqlwrapper)(
-            construct_query_x_values, convert=True
-        )
+    result_converted = await acall(
+        sparqlwrapper, method, query=param.query, convert=True
+    )
 
-    else:
-        result = attr_getter(sparqlwrapper)(construct_query_x_values)
-        result_converted = attr_getter(sparqlwrapper)(
-            construct_query_x_values, convert=True
-        )
-
-    ntriples_data = """
-    <urn:s> <urn:p> "1"^^<http://www.w3.org/2001/XMLSchema#integer> .
-    <urn:s> <urn:p> "3"^^<http://www.w3.org/2001/XMLSchema#integer> .
-    <urn:s> <urn:p> "2"^^<http://www.w3.org/2001/XMLSchema#integer> .
-    """
-    expected_graph = Graph().parse(data=ntriples_data)
-
-    assert isomorphic(_convert_graph(result), expected_graph)
-    assert isomorphic(result_converted, expected_graph)
-
-
-@pytest.mark.parametrize("method", ["query", "aquery"])
-@pytest.mark.asyncio
-async def test_sparqlwrapper_query_describe(method, fuseki_service):
-    attr_getter = operator.attrgetter(method)
-
-    endpoint: str = fuseki_service.sparql_endpoint
-    sparqlwrapper = SPARQLWrapper(endpoint=endpoint)
-
-    if method == "aquery":
-        result = await attr_getter(sparqlwrapper)(describe_query)
-        result_converted = await attr_getter(sparqlwrapper)(
-            describe_query, convert=True
-        )
-    else:
-        result = attr_getter(sparqlwrapper)(describe_query)
-        result_converted = attr_getter(sparqlwrapper)(describe_query, convert=True)
-
-    assert not result.content
-    assert not result_converted
+    assert param.compare(result_converted, param.expected)
 
 
 @pytest.mark.parametrize("method", ["query", "aquery"])
 @pytest.mark.parametrize(
-    "query", [select_query_xy_values, ask_query_true, ask_query_false]
+    "query",
+    [
+        select_query_xy_values,
+        ask_query_true,
+        ask_query_false,
+        select_query_bnode,
+        select_query_types,
+    ],
 )
 @pytest.mark.parametrize(
     "response_format",
@@ -161,49 +137,45 @@ async def test_sparqlwrapper_query_binding_result_formats(
     method, query, response_format, fuseki_service
 ):
     """Run SELECT and ASK queries with bindings result formats."""
-    attr_getter = operator.attrgetter(method)
 
     endpoint: str = fuseki_service.sparql_endpoint
     sparqlwrapper = SPARQLWrapper(endpoint=endpoint)
 
-    if method == "aquery":
-        result = await attr_getter(sparqlwrapper)(
-            query, response_format=response_format
-        )
-    else:
-        result = attr_getter(sparqlwrapper)(query, response_format=response_format)
+    result = await acall(
+        sparqlwrapper, method, query=query, response_format=response_format
+    )
 
     assert result.content
 
 
 @pytest.mark.parametrize("method", ["query", "aquery"])
-@pytest.mark.parametrize("query", [construct_query_x_values])
+@pytest.mark.parametrize("query", [construct_query_x_values, describe_query])
 @pytest.mark.parametrize(
     "response_format", [None, *graph_format_map.keys(), "application/n-triples"]
 )
 @pytest.mark.asyncio
 async def test_sparqlwrapper_query_graph_result_formats(
-    method, query, response_format, fuseki_service
+    method, query, response_format, fuseki_service_graph
 ):
-    """Run CONSTRUCT and DESCRIBE queries with graph result formats."""
-    attr_getter = operator.attrgetter(method)
+    """Run CONSTRUCT and DESCRIBE queries with graph result formats.
 
-    endpoint: str = fuseki_service.sparql_endpoint
+    The tests uses the fuseki_service_graph fixture in order
+    to retrieve a non-empty graph object on DESCRIBE queries.
+    """
+    endpoint: str = fuseki_service_graph.sparql_endpoint
     sparqlwrapper = SPARQLWrapper(endpoint=endpoint)
 
-    if method == "aquery":
-        result = await attr_getter(sparqlwrapper)(
-            query, response_format=response_format
-        )
-        result_converted = await attr_getter(sparqlwrapper)(
-            query, response_format=response_format, convert=True
-        )
+    result = await acall(
+        sparqlwrapper, method, query=query, response_format=response_format
+    )
 
-    else:
-        result = attr_getter(sparqlwrapper)(query, response_format=response_format)
-        result_converted = attr_getter(sparqlwrapper)(
-            query, response_format=response_format, convert=True
-        )
+    result_converted = await acall(
+        sparqlwrapper,
+        method,
+        query=query,
+        convert=True,
+        response_format=response_format,
+    )
 
     assert result
     assert result_converted
@@ -231,8 +203,18 @@ async def test_sparqlwrapper_warn_open_client(fuseki_service):
         await sparqlwrapper.aquery(select_query_xy_values)
 
 
+@pytest.mark.parametrize(
+    "query",
+    [
+        select_query_xy_values,
+        ask_query_false,
+        ask_query_true,
+        construct_query_x_values,
+        describe_query,
+    ],
+)
 @pytest.mark.asyncio
-async def test_sparql_wrapper_context_managers(fuseki_service):
+async def test_sparql_wrapper_context_managers(query, fuseki_service):
     endpoint: str = fuseki_service.sparql_endpoint
 
     client = httpx.Client()
@@ -241,12 +223,17 @@ async def test_sparql_wrapper_context_managers(fuseki_service):
     sparqlwrapper = SPARQLWrapper(endpoint=endpoint, client=client, aclient=aclient)
 
     with sparqlwrapper as context_wrapper:
-        result_1 = context_wrapper.query(select_query_xy_values, convert=True)
+        result_1 = context_wrapper.query(query=query)
+        assert not client.is_closed
 
     async with sparqlwrapper as context_wrapper:
-        result_2 = await context_wrapper.aquery(select_query_xy_values, convert=True)
+        result_2 = await context_wrapper.aquery(query=query)
+        assert not aclient.is_closed
 
-    assert list(result_1) == list(result_2)
+    assert client.is_closed
+    assert aclient.is_closed
+
+    assert result_1.content == result_2.content
 
 
 @pytest.mark.parametrize(
@@ -257,6 +244,8 @@ async def test_sparql_wrapper_context_managers(fuseki_service):
         ask_query_true,
         construct_query_x_values,
         describe_query,
+        select_query_types,
+        select_query_bnode,
     ],
 )
 @pytest.mark.asyncio
@@ -303,32 +292,3 @@ def test_sparqlwrapper_queries(query, fuseki_service):
         response_1.content == response_2.content
         for response_1, response_2 in zip(results_queries, results_aqueries)
     )
-
-
-def test_sparqlwrapper_python_cast_types(fuseki_service):
-    """Run a query featuring several RDF types and check for Python-casting."""
-    endpoint: str = fuseki_service.sparql_endpoint
-    sparqlwrapper = SPARQLWrapper(endpoint=endpoint)
-
-    result = sparqlwrapper.query(select_query_types, convert=True)
-
-    expected = [
-        {"x": 2},
-        {"x": Decimal("2.2")},
-        {"x": None},
-        {"x": URIRef("https://test.uri")},
-        {"x": datetime.date(2024, 1, 1)},
-        {"x": Literal("2024", datatype=XSD.gYear)},
-        {"x": Literal("2024-01", datatype=XSD.gYearMonth)},
-    ]
-
-    assert list(result) == expected
-
-
-def test_sparqlwrapper_python_cast_bnodes(fuseki_service):
-    """Run a query which mocks a BNode and check for BNode-casting."""
-    endpoint: str = fuseki_service.sparql_endpoint
-    sparqlwrapper = SPARQLWrapper(endpoint=endpoint)
-
-    result, *_ = sparqlwrapper.query(select_query_bnode, convert=True)
-    assert isinstance(result["x"], BNode)
