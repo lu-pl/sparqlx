@@ -1,12 +1,14 @@
 from collections import UserDict
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Iterable, Iterator
+from decimal import ConversionSyntax
 import json
 from typing import Literal as TypingLiteral, NamedTuple
 
 import httpx
 from rdflib import BNode, Graph, Literal, URIRef, XSD
 from rdflib.plugins.sparql import prepareQuery
-from sparqlx.utils.types import _TSPARQLBinding, _TSPARQLBindingValue
+
+from sparqlx.utils.types import _TResponseFormat, _TSPARQLBinding, _TSPARQLBindingValue
 
 
 def _convert_bindings(
@@ -95,41 +97,64 @@ graph_format_map = MimeTypeMap(
 )
 
 
-class QueryOperationParameters(NamedTuple):
-    response_format: str
-    converter: Callable[[httpx.Response], Iterator[_TSPARQLBinding] | Graph | bool]
+class QueryOperationDataMap(UserDict):
+    def __init__(self, **kwargs):
+        self.data = {k.replace("_", "-"): v for k, v in kwargs.items() if v is not None}
 
 
-def get_query_type(query: str) -> str:
-    return prepareQuery(queryString=query).algebra.name
+class QueryOperationParameters:
+    def __init__(
+        self,
+        query: str,
+        convert: bool | None = None,
+        response_format: _TResponseFormat | str | None = None,
+        version: str | None = None,
+        default_graph_uri: str | Iterable[str] | None = None,
+        named_graph_uri: str | Iterable[str] | None = None,
+    ) -> None:
+        self._query = query
+        self._convert = convert
+        self._query_type = prepareQuery(query).algebra.name
+        self._response_format = response_format
 
+        self.data: QueryOperationDataMap = QueryOperationDataMap(
+            query=query,
+            version=version,
+            default_graph_uri=default_graph_uri,
+            named_graph_uri=named_graph_uri,
+        )
+        self.headers = {"Accept": self.response_format}
 
-def get_query_operation_parameters(
-    query: str, convert: bool = False, response_format: str | None = None
-) -> QueryOperationParameters:
-    query_type = get_query_type(query)
+    @property
+    def converter(self):
+        match self._query_type:
+            case "SelectQuery":
+                converter = _convert_bindings
+            case "AskQuery":
+                converter = _convert_ask
+            case "DescribeQuery" | "ConstructQuery":
+                converter = _convert_graph
+            case _:  # pragma: no cover
+                raise ValueError(f"Unsupported query type: {self._query_type}")
 
-    match query_type:
-        case "SelectQuery" | "AskQuery":
-            _response_format = bindings_format_map[response_format or "json"]
+        return converter
 
-            if convert and not _response_format in [
-                "application/json",
-                "application/sparql-results+json",
-            ]:
-                msg = "JSON response format required for convert=True on SELECT and ASK query results."
-                raise ValueError(msg)
+    @property
+    def response_format(self) -> str:
+        match self._query_type:
+            case "SelectQuery" | "AskQuery":
+                _response_format = bindings_format_map[self._response_format or "json"]
 
-            converter = (
-                _convert_bindings if query_type == "SelectQuery" else _convert_ask
-            )
+                if self._convert and not _response_format in [
+                    "application/json",
+                    "application/sparql-results+json",
+                ]:
+                    msg = "JSON response format required for convert=True on SELECT and ASK query results."
+                    raise ValueError(msg)
 
-        case "DescribeQuery" | "ConstructQuery":
-            _response_format = graph_format_map[response_format or "turtle"]
-            converter = _convert_graph
-        case _:  # pragma: no cover
-            raise ValueError(f"Unsupported query type: {query_type}")
+            case "DescribeQuery" | "ConstructQuery":
+                _response_format = graph_format_map[self._response_format or "turtle"]
+            case _:  # pragma: no cover
+                raise ValueError(f"Unsupported query type: {self._query_type}")
 
-    return QueryOperationParameters(
-        response_format=_response_format, converter=converter
-    )
+        return _response_format
