@@ -2,9 +2,8 @@
 
 from collections.abc import Iterator
 
-import pytest
-
 import httpx
+import pytest
 from testcontainers.core.container import DockerContainer
 from testcontainers.core.waiting_utils import wait_for_logs
 
@@ -62,4 +61,8 @@ def fuseki_service_graph(fuseki_service) -> Iterator[FusekiEndpoints]:
         )
         response.raise_for_status()
 
-    yield fuseki_service
+        yield fuseki_service
+
+        client.delete(
+            url=f"{graphstore_endpoint}?graph=urn%3Agraph",
+        )
