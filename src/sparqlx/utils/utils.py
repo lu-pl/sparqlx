@@ -1,8 +1,6 @@
 from collections import UserDict
-from collections.abc import Callable, Iterable, Iterator
-from decimal import ConversionSyntax
+from collections.abc import Iterable, Iterator
 import json
-from typing import Literal as TypingLiteral, NamedTuple
 
 import httpx
 from rdflib import BNode, Graph, Literal, URIRef, XSD
@@ -145,7 +143,7 @@ class QueryOperationParameters:
             case "SelectQuery" | "AskQuery":
                 _response_format = bindings_format_map[self._response_format or "json"]
 
-                if self._convert and not _response_format in [
+                if self._convert and _response_format not in [
                     "application/json",
                     "application/sparql-results+json",
                 ]:

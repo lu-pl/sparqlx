@@ -14,7 +14,6 @@ import warnings
 
 import httpx
 from rdflib import Graph
-from rdflib.plugins.sparql import prepareQuery
 
 from sparqlx.utils.types import _TResponseFormat, _TSPARQLBinding
 from sparqlx.utils.utils import QueryOperationParameters
