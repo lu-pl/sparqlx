@@ -1,0 +1,50 @@
+# RDF Test Graph - 3 Persons with Key RDF Features
+
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix ex: <http://example.org/> .
+
+
+{
+ex:alice rdf:type foaf:Person ;
+         foaf:name "Alice"@en , "Alice"@fr ;
+         foaf:age "30"^^xsd:int ;
+	 
+         foaf:birthday "1995-01-01"^^xsd:date ;
+	 ex:birthdayYear "1995"^^xsd:gYear ;
+	 ex:birthdayMonth "01"^^xsd:gMonth ;
+	 ex:birthdayDay "--01-01"^^xsd:gMonthDay ;
+	 ex:birthTime "14:30:00Z"^^xsd:time ; 
+	 ex:birthDateTime "1995-01-01T14:30:00Z"^^xsd:dateTime ;
+	 
+         foaf:height "1.70"^^xsd:decimal ;
+         foaf:married false ;
+         foaf:mbox <mailto:alice@example.org> ;
+         foaf:homepage <http://alice.example.org> ;
+	 
+         ex:skills ( "Python" "RDF" "Common Lisp" ) ;
+	 foaf:interest "Music" , "Photography" , "Travel" ;
+	 
+	 foaf:knows ex:bob , _:charlie ;
+	 foaf:knows [
+	 	    a foaf:Person ;
+	  	    foaf:name "David Wilson" ;
+          	    ] ;
+		    
+	 ex:projectDuration "P2Y6M5DT12H35M30S"^^xsd:duration ; 
+	 ex:profilePic "aGVsbG8gd29ybGQ="^^xsd:base64Binary ;
+	 ex:temperature "36.6"^^xsd:float ;
+	 ex:bigNumber "9223372036854775807"^^xsd:long .
+}
+
+
+<urn:ng1> {
+ex:bob rdf:type foaf:Person ;
+       foaf:name "Bob" .
+}
+
+<urn:ng2> {
+_:charlie rdf:type foaf:Person ;
+	  foaf:name "Charlie" .
+}
