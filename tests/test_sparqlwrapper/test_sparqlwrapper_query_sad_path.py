@@ -14,10 +14,10 @@ from data.queries import ask_query_false, ask_query_true, select_query_xy_values
     "response_format", filter(lambda k: k != "json", bindings_format_map.keys())
 )
 def test_sparqlwrapper_result_binding_conversion_non_json_fail(
-    query, response_format, fuseki_service
+    query, response_format, oxigraph_service
 ):
     msg = "JSON response format required for convert=True on SELECT and ASK query results."
     with pytest.raises(ValueError, match=msg):
-        SPARQLWrapper(endpoint=fuseki_service.sparql_endpoint).query(
+        SPARQLWrapper(endpoint=oxigraph_service.sparql_endpoint).query(
             query, convert=True, response_format=response_format
         )

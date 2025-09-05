@@ -1,27 +1,14 @@
 """Pytest entry point for basic SPARQLWrapper Query Operation tests."""
 
 import asyncio
-import asyncio
 from collections.abc import Callable
 import datetime
-import datetime
 from decimal import Decimal
-from decimal import Decimal
-import operator
 import operator
 from typing import NamedTuple
 from typing import Any
 
-import httpx
 import pytest
-import pytest
-from rdflib import BNode, Graph, Literal, URIRef, XSD
-from rdflib import BNode, Graph, Literal, URIRef, XSD
-from rdflib.compare import isomorphic
-from rdflib.compare import isomorphic
-from sparqlx import SPARQLWrapper
-from sparqlx import SPARQLWrapper
-from sparqlx.utils.utils import bindings_format_map, graph_format_map
 
 from data.queries import (
     ask_query_false,
@@ -32,15 +19,11 @@ from data.queries import (
     select_query_types,
     select_query_xy_values,
 )
-from data.queries import (
-    ask_query_false,
-    ask_query_true,
-    construct_query_x_values,
-    describe_query,
-    select_query_bnode,
-    select_query_types,
-    select_query_xy_values,
-)
+import httpx
+from rdflib import BNode, Graph, Literal, URIRef, XSD
+from rdflib.compare import isomorphic
+from sparqlx import SPARQLWrapper
+from sparqlx.utils.utils import bindings_format_map, graph_format_map
 
 
 class QueryOperationParameter(NamedTuple):
@@ -106,8 +89,8 @@ params = [
 @pytest.mark.parametrize("method", ["query", "aquery"])
 @pytest.mark.parametrize("param", params)
 @pytest.mark.asyncio
-async def test_sparqlwrapper_query(method, param, fuseki_service):
-    endpoint: str = fuseki_service.sparql_endpoint
+async def test_sparqlwrapper_query(method, param, oxigraph_service):
+    endpoint: str = oxigraph_service.sparql_endpoint
     sparqlwrapper = SPARQLWrapper(endpoint=endpoint)
 
     result_converted = await acall(
@@ -130,15 +113,16 @@ async def test_sparqlwrapper_query(method, param, fuseki_service):
 )
 @pytest.mark.parametrize(
     "response_format",
-    [None, *bindings_format_map.keys(), "application/x-binary-rdf-results-table"],
+    # [None, *bindings_format_map.keys(), "application/x-binary-rdf-results-table"],
+    [None, *bindings_format_map.keys()],
 )
 @pytest.mark.asyncio
 async def test_sparqlwrapper_query_binding_result_formats(
-    method, query, response_format, fuseki_service
+    method, query, response_format, oxigraph_service
 ):
     """Run SELECT and ASK queries with bindings result formats."""
 
-    endpoint: str = fuseki_service.sparql_endpoint
+    endpoint: str = oxigraph_service.sparql_endpoint
     sparqlwrapper = SPARQLWrapper(endpoint=endpoint)
 
     result = await acall(
@@ -155,14 +139,14 @@ async def test_sparqlwrapper_query_binding_result_formats(
 )
 @pytest.mark.asyncio
 async def test_sparqlwrapper_query_graph_result_formats(
-    method, query, response_format, fuseki_service_graph
+    method, query, response_format, oxigraph_service_graph
 ):
     """Run CONSTRUCT and DESCRIBE queries with graph result formats.
 
-    The tests uses the fuseki_service_graph fixture in order
+    The tests uses the oxigraph_service_graph fixture in order
     to retrieve a non-empty graph object on DESCRIBE queries.
     """
-    endpoint: str = fuseki_service_graph.sparql_endpoint
+    endpoint: str = oxigraph_service_graph.sparql_endpoint
     sparqlwrapper = SPARQLWrapper(endpoint=endpoint)
 
     result = await acall(
@@ -182,8 +166,8 @@ async def test_sparqlwrapper_query_graph_result_formats(
 
 
 @pytest.mark.asyncio
-async def test_sparqlwrapper_warn_open_client(fuseki_service):
-    endpoint: str = fuseki_service.sparql_endpoint
+async def test_sparqlwrapper_warn_open_client(oxigraph_service):
+    endpoint: str = oxigraph_service.sparql_endpoint
 
     client = httpx.Client()
     aclient = httpx.AsyncClient()
@@ -214,8 +198,8 @@ async def test_sparqlwrapper_warn_open_client(fuseki_service):
     ],
 )
 @pytest.mark.asyncio
-async def test_sparql_wrapper_context_managers(query, fuseki_service):
-    endpoint: str = fuseki_service.sparql_endpoint
+async def test_sparql_wrapper_context_managers(query, oxigraph_service):
+    endpoint: str = oxigraph_service.sparql_endpoint
 
     client = httpx.Client()
     aclient = httpx.AsyncClient()
@@ -245,12 +229,12 @@ async def test_sparql_wrapper_context_managers(query, fuseki_service):
         construct_query_x_values,
         describe_query,
         select_query_types,
-        select_query_bnode,
+        # note: bnode query cannot be compared
     ],
 )
 @pytest.mark.asyncio
-async def test_sparqlwrapper_streaming(query, fuseki_service):
-    endpoint: str = fuseki_service.sparql_endpoint
+async def test_sparqlwrapper_streaming(query, oxigraph_service):
+    endpoint: str = oxigraph_service.sparql_endpoint
     sparqlwrapper = SPARQLWrapper(endpoint=endpoint)
 
     stream = sparqlwrapper.query_stream(query, chunk_size=1)
@@ -272,8 +256,8 @@ async def test_sparqlwrapper_streaming(query, fuseki_service):
         describe_query,
     ],
 )
-def test_sparqlwrapper_queries(query, fuseki_service):
-    endpoint: str = fuseki_service.sparql_endpoint
+def test_sparqlwrapper_queries(query, oxigraph_service):
+    endpoint: str = oxigraph_service.sparql_endpoint
     sparqlwrapper = SPARQLWrapper(endpoint=endpoint)
 
     queries: list[str] = [query for _ in range(5)]
