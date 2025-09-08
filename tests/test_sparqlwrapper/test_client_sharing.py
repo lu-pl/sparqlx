@@ -6,12 +6,12 @@ from sparqlx import SPARQLWrapper
 
 def test_client_identity():
     """Check the client attribute of a SPARQLOperationWrapper for supplied/managed client."""
-    sparqlwrapper = SPARQLWrapper(endpoint="https://some.endpoint")
+    sparqlwrapper = SPARQLWrapper(sparql_endpoint="https://some.endpoint")
 
     client = httpx.Client()
     aclient = httpx.AsyncClient()
     sparqlwrapper_with_client = SPARQLWrapper(
-        endpoint="https://some.endpoint", client=client, aclient=aclient
+        sparql_endpoint="https://some.endpoint", client=client, aclient=aclient
     )
 
     assert sparqlwrapper.client is None
@@ -28,8 +28,12 @@ def test_shared_client():
     """Check client identity and closed-status for a shared client."""
     client = httpx.Client()
 
-    sparqlwrapper_1 = SPARQLWrapper(endpoint="https://some.endpoint", client=client)
-    sparqlwrapper_2 = SPARQLWrapper(endpoint="https://some.endpoint", client=client)
+    sparqlwrapper_1 = SPARQLWrapper(
+        sparql_endpoint="https://some.endpoint", client=client
+    )
+    sparqlwrapper_2 = SPARQLWrapper(
+        sparql_endpoint="https://some.endpoint", client=client
+    )
 
     assert all(
         _client is client
@@ -67,7 +71,7 @@ def test_shared_client():
 def test_managed_context_client():
     """Check managed client status is a SPARQLOperationWrapper context."""
 
-    sparqlwrapper = SPARQLWrapper(endpoint="https://some.endoint")
+    sparqlwrapper = SPARQLWrapper(sparql_endpoint="https://some.endoint")
     assert sparqlwrapper.client is None
 
     with sparqlwrapper as wrapper_context:
@@ -86,7 +90,7 @@ def test_shared_context_client():
     """Check shard client status is a SPARQLOperationWrapper context."""
     client = httpx.Client()
 
-    sparqlwrapper = SPARQLWrapper(endpoint="https://some.endoint", client=client)
+    sparqlwrapper = SPARQLWrapper(sparql_endpoint="https://some.endoint", client=client)
     assert sparqlwrapper.client is client
 
     with sparqlwrapper as wrapper_context:

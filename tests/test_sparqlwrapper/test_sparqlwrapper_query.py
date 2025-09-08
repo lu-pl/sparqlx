@@ -81,8 +81,8 @@ params = [
 @pytest.mark.parametrize("param", params)
 @pytest.mark.asyncio
 async def test_sparqlwrapper_query(method, param, oxigraph_service):
-    endpoint: str = oxigraph_service.sparql_endpoint
-    sparqlwrapper = SPARQLWrapper(endpoint=endpoint)
+    sparql_endpoint: str = oxigraph_service.sparql_endpoint
+    sparqlwrapper = SPARQLWrapper(sparql_endpoint=sparql_endpoint)
 
     result_converted = await acall(
         sparqlwrapper, method, query=param.query, convert=True
@@ -113,8 +113,8 @@ async def test_sparqlwrapper_query_binding_result_formats(
 ):
     """Run SELECT and ASK queries with bindings result formats."""
 
-    endpoint: str = oxigraph_service.sparql_endpoint
-    sparqlwrapper = SPARQLWrapper(endpoint=endpoint)
+    sparql_endpoint: str = oxigraph_service.sparql_endpoint
+    sparqlwrapper = SPARQLWrapper(sparql_endpoint=sparql_endpoint)
 
     result = await acall(
         sparqlwrapper, method, query=query, response_format=response_format
@@ -137,8 +137,8 @@ async def test_sparqlwrapper_query_graph_result_formats(
     The tests uses the oxigraph_service_graph fixture in order
     to retrieve a non-empty graph object on DESCRIBE queries.
     """
-    endpoint: str = oxigraph_service_graph.sparql_endpoint
-    sparqlwrapper = SPARQLWrapper(endpoint=endpoint)
+    sparql_endpoint: str = oxigraph_service_graph.sparql_endpoint
+    sparqlwrapper = SPARQLWrapper(sparql_endpoint=sparql_endpoint)
 
     result = await acall(
         sparqlwrapper, method, query=query, response_format=response_format
@@ -158,12 +158,14 @@ async def test_sparqlwrapper_query_graph_result_formats(
 
 @pytest.mark.asyncio
 async def test_sparqlwrapper_warn_open_client(oxigraph_service):
-    endpoint: str = oxigraph_service.sparql_endpoint
+    sparql_endpoint: str = oxigraph_service.sparql_endpoint
 
     client = httpx.Client()
     aclient = httpx.AsyncClient()
 
-    sparqlwrapper = SPARQLWrapper(endpoint=endpoint, client=client, aclient=aclient)
+    sparqlwrapper = SPARQLWrapper(
+        sparql_endpoint=sparql_endpoint, client=client, aclient=aclient
+    )
 
     def _get_msg(client):
         return (
@@ -190,12 +192,14 @@ async def test_sparqlwrapper_warn_open_client(oxigraph_service):
 )
 @pytest.mark.asyncio
 async def test_sparql_wrapper_context_managers(query, oxigraph_service):
-    endpoint: str = oxigraph_service.sparql_endpoint
+    sparql_endpoint: str = oxigraph_service.sparql_endpoint
 
     client = httpx.Client()
     aclient = httpx.AsyncClient()
 
-    sparqlwrapper = SPARQLWrapper(endpoint=endpoint, client=client, aclient=aclient)
+    sparqlwrapper = SPARQLWrapper(
+        sparql_endpoint=sparql_endpoint, client=client, aclient=aclient
+    )
 
     with sparqlwrapper as context_wrapper:
         result_1 = context_wrapper.query(query=query)
@@ -225,8 +229,8 @@ async def test_sparql_wrapper_context_managers(query, oxigraph_service):
 )
 @pytest.mark.asyncio
 async def test_sparqlwrapper_streaming(query, oxigraph_service):
-    endpoint: str = oxigraph_service.sparql_endpoint
-    sparqlwrapper = SPARQLWrapper(endpoint=endpoint)
+    sparql_endpoint: str = oxigraph_service.sparql_endpoint
+    sparqlwrapper = SPARQLWrapper(sparql_endpoint=sparql_endpoint)
 
     stream = sparqlwrapper.query_stream(query, chunk_size=1)
     astream = sparqlwrapper.aquery_stream(query, chunk_size=1)
@@ -248,8 +252,8 @@ async def test_sparqlwrapper_streaming(query, oxigraph_service):
     ],
 )
 def test_sparqlwrapper_queries(query, oxigraph_service):
-    endpoint: str = oxigraph_service.sparql_endpoint
-    sparqlwrapper = SPARQLWrapper(endpoint=endpoint)
+    sparql_endpoint: str = oxigraph_service.sparql_endpoint
+    sparqlwrapper = SPARQLWrapper(sparql_endpoint=sparql_endpoint)
 
     queries: list[str] = [query for _ in range(5)]
 
