@@ -24,12 +24,12 @@ ex:alice rdf:type foaf:Person ;
          foaf:homepage <http://alice.example.org> ;
 	 
          ex:skills ( "Python" "RDF" "Common Lisp" ) ;
-	 foaf:interest "Music" , "Photography" , "Travel" ;
+	 foaf:interest "Mountain biking" , "Road cycling" , "Gravel riding" ;
 	 
 	 foaf:knows ex:bob , _:charlie ;
 	 foaf:knows [
 	 	    a foaf:Person ;
-	  	    foaf:name "David Wilson" ;
+	  	    foaf:name "David" ;
           	    ] ;
 		    
 	 ex:projectDuration "P2Y6M5DT12H35M30S"^^xsd:duration ; 
