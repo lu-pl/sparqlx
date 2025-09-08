@@ -14,21 +14,25 @@ import warnings
 
 import httpx
 from rdflib import Graph
-
 from sparqlx.utils.types import _TResponseFormat, _TSPARQLBinding
-from sparqlx.utils.utils import QueryOperationParameters
+from sparqlx.utils.utils import QueryOperationParameters, UpdateOperationParameters
 
 
 class _SPARQLOperationWrapper(AbstractContextManager, AbstractAsyncContextManager):
     def __init__(
         self,
-        endpoint: str,
+        sparql_endpoint: str | None = None,
+        update_endpoint: str | None = None,
         client: httpx.Client | None = None,
         client_config: dict | None = None,
         aclient: httpx.AsyncClient | None = None,
         aclient_config: dict | None = None,
     ) -> None:
-        self.endpoint = endpoint
+        if not any([sparql_endpoint, update_endpoint]):
+            raise ValueError("At least one endpoint must be defined.")
+
+        self.sparql_endpoint = sparql_endpoint
+        self.update_endpoint = update_endpoint
 
         self.client: httpx.Client | None = client
         self._client_config: dict = client_config or {}
@@ -85,7 +89,8 @@ class _SPARQLOperationWrapper(AbstractContextManager, AbstractAsyncContextManage
 
     def __enter__(self) -> Self:
         self.__context_wrapper = self.__class__(
-            endpoint=self.endpoint,
+            sparql_endpoint=self.sparql_endpoint,
+            update_endpoint=self.update_endpoint,
             client=self._client,
             client_config=self._client_config,
         )
@@ -96,7 +101,8 @@ class _SPARQLOperationWrapper(AbstractContextManager, AbstractAsyncContextManage
 
     async def __aenter__(self) -> Self:
         self.__context_wrapper = self.__class__(
-            endpoint=self.endpoint,
+            sparql_endpoint=self.sparql_endpoint,
+            update_endpoint=self.update_endpoint,
             aclient=self._aclient,
             aclient_config=self._aclient_config,
         )
@@ -149,7 +155,7 @@ class _SPARQLQueryWrapper(_SPARQLOperationWrapper):
 
         with self._managed_client() as client:
             response = client.post(
-                url=self.endpoint,
+                url=self.sparql_endpoint,  # type: ignore
                 data=params.data,
                 headers=params.headers,
             )
@@ -201,7 +207,7 @@ class _SPARQLQueryWrapper(_SPARQLOperationWrapper):
 
         async with self._managed_aclient() as aclient:
             response = await aclient.post(
-                url=self.endpoint,
+                url=self.sparql_endpoint,  # type: ignore
                 data=params.data,
                 headers=params.headers,
             )
@@ -240,7 +246,7 @@ class _SPARQLQueryWrapper(_SPARQLOperationWrapper):
         with self._managed_client() as client:
             with client.stream(
                 "POST",
-                url=self.endpoint,
+                url=self.sparql_endpoint,  # type: ignore
                 data=params.data,
                 headers=params.headers,
             ) as response:
@@ -278,7 +284,7 @@ class _SPARQLQueryWrapper(_SPARQLOperationWrapper):
         async with self._managed_aclient() as aclient:
             async with aclient.stream(
                 "POST",
-                url=self.endpoint,
+                url=self.sparql_endpoint,  # type: ignore
                 data=params.data,
                 headers=params.headers,
             ) as response:
@@ -319,7 +325,7 @@ class _SPARQLQueryWrapper(_SPARQLOperationWrapper):
         named_graph_uri: str | Iterable[str] | None = None,
     ) -> Iterator[httpx.Response | Iterator[_TSPARQLBinding] | Graph | bool]:
         query_component = _SPARQLQueryWrapper(
-            endpoint=self.endpoint, aclient=self._aclient
+            sparql_endpoint=self.sparql_endpoint, aclient=self._aclient
         )
 
         async def _runner() -> Iterator[httpx.Response]:
@@ -344,21 +350,82 @@ class _SPARQLQueryWrapper(_SPARQLOperationWrapper):
         return results
 
 
-class _SPARQLUpdateWrapper(_SPARQLOperationWrapper):  # pragma: no cover
+class _SPARQLUpdateWrapper(_SPARQLOperationWrapper):
     def update(
         self,
         update_request: str,
+        version: str | None = None,
+        using_graph_uri: str | Iterable[str] | None = None,
+        using_named_graph_uri: str | Iterable[str] | None = None,
     ) -> httpx.Response:
-        raise NotImplementedError
+        params = UpdateOperationParameters(
+            update_request=update_request,
+            version=version,
+            using_graph_uri=using_graph_uri,
+            using_named_graph_uri=using_named_graph_uri,
+        )
 
-    def aupdate(
+        with self._managed_client() as client:
+            response = client.post(
+                url=self.update_endpoint,  # type: ignore
+                data=params.data,
+                headers=params.headers,
+            )
+            response.raise_for_status()
+            return response
+
+    async def aupdate(
         self,
         update_request: str,
+        version: str | None = None,
+        using_graph_uri: str | Iterable[str] | None = None,
+        using_named_graph_uri: str | Iterable[str] | None = None,
     ) -> httpx.Response:
-        raise NotImplementedError
+        params = UpdateOperationParameters(
+            update_request=update_request,
+            version=version,
+            using_graph_uri=using_graph_uri,
+            using_named_graph_uri=using_named_graph_uri,
+        )
 
-    def updates(self, *update_requests) -> Iterator[httpx.Response]:
-        raise NotImplementedError
+        async with self._managed_aclient() as aclient:
+            response = await aclient.post(
+                url=self.update_endpoint,  # type: ignore
+                data=params.data,
+                headers=params.headers,
+            )
+            response.raise_for_status()
+            return response
+
+    def updates(
+        self,
+        *update_requests,
+        version: str | None = None,
+        using_graph_uri: str | Iterable[str] | None = None,
+        using_named_graph_uri: str | Iterable[str] | None = None,
+    ) -> Iterator[httpx.Response]:
+        update_component = _SPARQLUpdateWrapper(
+            update_endpoint=self.update_endpoint, aclient=self._aclient
+        )
+
+        async def _runner() -> Iterator[httpx.Response]:
+            async with update_component, asyncio.TaskGroup() as tg:
+                tasks = [
+                    tg.create_task(
+                        update_component.aupdate(
+                            update_request=update_request,
+                            version=version,
+                            using_graph_uri=using_graph_uri,
+                            using_named_graph_uri=using_named_graph_uri,
+                        )
+                    )
+                    for update_request in update_requests
+                ]
+
+            return map(asyncio.Task.result, tasks)
+
+        results = asyncio.run(_runner())
+        return results
 
 
 class SPARQLWrapper(_SPARQLQueryWrapper, _SPARQLUpdateWrapper):
