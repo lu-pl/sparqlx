@@ -8,7 +8,12 @@ import operator
 from typing import NamedTuple
 from typing import Any
 
+import httpx
 import pytest
+from rdflib import BNode, Graph, Literal, URIRef, XSD
+from rdflib.compare import isomorphic
+from sparqlx import SPARQLWrapper
+from sparqlx.utils.utils import bindings_format_map, graph_format_map
 
 from data.queries import (
     ask_query_false,
@@ -19,27 +24,13 @@ from data.queries import (
     select_query_types,
     select_query_xy_values,
 )
-import httpx
-from rdflib import BNode, Graph, Literal, URIRef, XSD
-from rdflib.compare import isomorphic
-from sparqlx import SPARQLWrapper
-from sparqlx.utils.utils import bindings_format_map, graph_format_map
+from utils import acall
 
 
 class QueryOperationParameter(NamedTuple):
     query: str
     expected: bool | list[dict] | Graph
     compare: Callable[[Any, Any], bool] = operator.eq
-
-
-async def acall(obj: Any, method: str, *args, **kwargs):
-    f = getattr(obj, method)
-
-    return (
-        await f(*args, **kwargs)
-        if asyncio.iscoroutinefunction(f)
-        else f(*args, **kwargs)
-    )
 
 
 ntriples_data = """
