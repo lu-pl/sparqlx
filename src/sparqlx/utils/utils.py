@@ -95,7 +95,7 @@ graph_format_map = MimeTypeMap(
 )
 
 
-class QueryOperationDataMap(UserDict):
+class SPARQLOperationDataMap(UserDict):
     def __init__(self, **kwargs):
         self.data = {k.replace("_", "-"): v for k, v in kwargs.items() if v is not None}
 
@@ -115,7 +115,7 @@ class QueryOperationParameters:
         self._query_type = prepareQuery(query).algebra.name
         self._response_format = response_format
 
-        self.data: QueryOperationDataMap = QueryOperationDataMap(
+        self.data: SPARQLOperationDataMap = SPARQLOperationDataMap(
             query=query,
             version=version,
             default_graph_uri=default_graph_uri,
@@ -156,3 +156,20 @@ class QueryOperationParameters:
                 raise ValueError(f"Unsupported query type: {self._query_type}")
 
         return _response_format
+
+
+class UpdateOperationParameters:
+    def __init__(
+        self,
+        update_request: str,
+        version: str | None = None,
+        using_graph_uri: str | Iterable[str] | None = None,
+        using_named_graph_uri: str | Iterable[str] | None = None,
+    ):
+        self.data: SPARQLOperationDataMap = SPARQLOperationDataMap(
+            update=update_request,
+            version=version,
+            using_graph_uri=using_graph_uri,
+            using_named_graph_uri=using_named_graph_uri,
+        )
+        self.headers = {"Content-Type": "application/x-www-form-urlencoded"}
