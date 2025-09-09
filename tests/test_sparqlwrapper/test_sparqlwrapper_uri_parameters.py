@@ -81,7 +81,9 @@ mixed_uri_parameters = [
     ),
 )
 def test_sparqlwrapper_default_graph_uri(params, oxigraph_service_graph):
-    sparqlwrapper = SPARQLWrapper(endpoint=oxigraph_service_graph.sparql_endpoint)
+    sparqlwrapper = SPARQLWrapper(
+        sparql_endpoint=oxigraph_service_graph.sparql_endpoint
+    )
     result = sparqlwrapper.query(
         query=params.query,
         convert=True,

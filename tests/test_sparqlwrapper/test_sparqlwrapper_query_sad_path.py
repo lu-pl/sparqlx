@@ -18,6 +18,6 @@ def test_sparqlwrapper_result_binding_conversion_non_json_fail(
 ):
     msg = "JSON response format required for convert=True on SELECT and ASK query results."
     with pytest.raises(ValueError, match=msg):
-        SPARQLWrapper(endpoint=oxigraph_service.sparql_endpoint).query(
+        SPARQLWrapper(sparql_endpoint=oxigraph_service.sparql_endpoint).query(
             query, convert=True, response_format=response_format
         )
