@@ -83,22 +83,22 @@ class _SPARQLOperationWrapper(AbstractContextManager, AbstractAsyncContextManage
         warnings.warn(msg, stacklevel=2)
 
     def __enter__(self) -> Self:
-        self.__context_wrapper = self.__class__(
-            endpoint=self.endpoint, client=self._client, aclient=self._aclient
-        )
-        return self.__context_wrapper
+        self.client = self._client
+        self._manage_client = False
+        return self
 
     def __exit__(self, exc_type, exc_value, traceback) -> None:
-        self.__context_wrapper._client.close()
+        assert isinstance(self.client, httpx.Client)  # type narrow
+        self.client.close()
 
     async def __aenter__(self) -> Self:
-        self.__context_wrapper = self.__class__(
-            endpoint=self.endpoint, client=self._client, aclient=self._aclient
-        )
-        return self.__context_wrapper
+        self.aclient = self._aclient
+        self._manage_aclient = False
+        return self
 
     async def __aexit__(self, exc_type, exc_value, traceback) -> None:
-        await self.__context_wrapper._aclient.aclose()
+        assert isinstance(self.aclient, httpx.AsyncClient)  # type narrow
+        await self.aclient.aclose()
 
 
 class _SPARQLQueryWrapper(_SPARQLOperationWrapper):
