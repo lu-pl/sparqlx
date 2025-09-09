@@ -14,20 +14,23 @@ import warnings
 
 import httpx
 from rdflib import Graph
+
 from sparqlx.utils.types import _TResponseFormat, _TSPARQLBinding
-from sparqlx.utils.utils import QueryOperationParameters
+from sparqlx.utils.utils import QueryOperationParameters, UpdateOperationParameters
 
 
 class _SPARQLOperationWrapper(AbstractContextManager, AbstractAsyncContextManager):
     def __init__(
         self,
-        endpoint: str,
+        sparql_endpoint: str | None = None,
+        update_endpoint: str | None = None,
         client: httpx.Client | None = None,
         client_config: dict | None = None,
         aclient: httpx.AsyncClient | None = None,
         aclient_config: dict | None = None,
     ) -> None:
-        self.endpoint = endpoint
+        self.sparql_endpoint = sparql_endpoint
+        self.update_endpoint = update_endpoint
 
         self.client: httpx.Client | None = client
         self._client_config: dict = client_config or {}
@@ -101,7 +104,13 @@ class _SPARQLOperationWrapper(AbstractContextManager, AbstractAsyncContextManage
         await self.aclient.aclose()
 
 
-class _SPARQLQueryWrapper(_SPARQLOperationWrapper):
+class SPARQLWrapper(_SPARQLOperationWrapper):
+    """SPARQLWrapper: An httpx-based SPARQL client.
+
+    The class provides functionality for running SPARQL Query and Update Operations
+    according to the SPARQL 1.2 protocol and supports both sync and async interfaces.
+    """
+
     @overload
     def query(
         self,
@@ -144,7 +153,7 @@ class _SPARQLQueryWrapper(_SPARQLOperationWrapper):
 
         with self._managed_client() as client:
             response = client.post(
-                url=self.endpoint,
+                url=self.sparql_endpoint,  # type: ignore
                 data=params.data,
                 headers=params.headers,
             )
@@ -196,7 +205,7 @@ class _SPARQLQueryWrapper(_SPARQLOperationWrapper):
 
         async with self._managed_aclient() as aclient:
             response = await aclient.post(
-                url=self.endpoint,
+                url=self.sparql_endpoint,  # type: ignore
                 data=params.data,
                 headers=params.headers,
             )
@@ -235,7 +244,7 @@ class _SPARQLQueryWrapper(_SPARQLOperationWrapper):
         with self._managed_client() as client:
             with client.stream(
                 "POST",
-                url=self.endpoint,
+                url=self.sparql_endpoint,  # type: ignore
                 data=params.data,
                 headers=params.headers,
             ) as response:
@@ -273,7 +282,7 @@ class _SPARQLQueryWrapper(_SPARQLOperationWrapper):
         async with self._managed_aclient() as aclient:
             async with aclient.stream(
                 "POST",
-                url=self.endpoint,
+                url=self.sparql_endpoint,  # type: ignore
                 data=params.data,
                 headers=params.headers,
             ) as response:
@@ -313,8 +322,8 @@ class _SPARQLQueryWrapper(_SPARQLOperationWrapper):
         default_graph_uri: str | Iterable[str] | None = None,
         named_graph_uri: str | Iterable[str] | None = None,
     ) -> Iterator[httpx.Response | Iterator[_TSPARQLBinding] | Graph | bool]:
-        query_component = _SPARQLQueryWrapper(
-            endpoint=self.endpoint, aclient=self._aclient
+        query_component = SPARQLWrapper(
+            sparql_endpoint=self.sparql_endpoint, aclient=self._aclient
         )
 
         async def _runner() -> Iterator[httpx.Response]:
@@ -338,27 +347,78 @@ class _SPARQLQueryWrapper(_SPARQLOperationWrapper):
         results = asyncio.run(_runner())
         return results
 
-
-class _SPARQLUpdateWrapper(_SPARQLOperationWrapper):  # pragma: no cover
     def update(
         self,
         update_request: str,
+        version: str | None = None,
+        using_graph_uri: str | Iterable[str] | None = None,
+        using_named_graph_uri: str | Iterable[str] | None = None,
     ) -> httpx.Response:
-        raise NotImplementedError
+        params = UpdateOperationParameters(
+            update_request=update_request,
+            version=version,
+            using_graph_uri=using_graph_uri,
+            using_named_graph_uri=using_named_graph_uri,
+        )
 
-    def aupdate(
+        with self._managed_client() as client:
+            response = client.post(
+                url=self.update_endpoint,  # type: ignore
+                data=params.data,
+                headers=params.headers,
+            )
+            response.raise_for_status()
+            return response
+
+    async def aupdate(
         self,
         update_request: str,
+        version: str | None = None,
+        using_graph_uri: str | Iterable[str] | None = None,
+        using_named_graph_uri: str | Iterable[str] | None = None,
     ) -> httpx.Response:
-        raise NotImplementedError
+        params = UpdateOperationParameters(
+            update_request=update_request,
+            version=version,
+            using_graph_uri=using_graph_uri,
+            using_named_graph_uri=using_named_graph_uri,
+        )
 
-    def updates(self, *update_requests) -> Iterator[httpx.Response]:
-        raise NotImplementedError
+        async with self._managed_aclient() as aclient:
+            response = await aclient.post(
+                url=self.update_endpoint,  # type: ignore
+                data=params.data,
+                headers=params.headers,
+            )
+            response.raise_for_status()
+            return response
 
+    def updates(
+        self,
+        *update_requests,
+        version: str | None = None,
+        using_graph_uri: str | Iterable[str] | None = None,
+        using_named_graph_uri: str | Iterable[str] | None = None,
+    ) -> Iterator[httpx.Response]:
+        update_component = SPARQLWrapper(
+            update_endpoint=self.update_endpoint, aclient=self._aclient
+        )
 
-class SPARQLWrapper(_SPARQLQueryWrapper, _SPARQLUpdateWrapper):
-    """Simple wrapper around a SPARQL service.
+        async def _runner() -> Iterator[httpx.Response]:
+            async with update_component, asyncio.TaskGroup() as tg:
+                tasks = [
+                    tg.create_task(
+                        update_component.aupdate(
+                            update_request=update_request,
+                            version=version,
+                            using_graph_uri=using_graph_uri,
+                            using_named_graph_uri=using_named_graph_uri,
+                        )
+                    )
+                    for update_request in update_requests
+                ]
 
-    The class provides functionality for running SPARQL Query and Update Operations
-    according to the SPARQL 1.1 protocol.
-    """
+            return map(asyncio.Task.result, tasks)
+
+        results = asyncio.run(_runner())
+        return results
