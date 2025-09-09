@@ -1,8 +1,8 @@
 from typing import NamedTuple
 
 import pytest
-
 from sparqlx import SPARQLWrapper
+
 from utils import parse_reponse_qs
 
 
@@ -76,7 +76,7 @@ params = [
 
 @pytest.mark.parametrize("param", params)
 def test_sparqlwrapper_query_request_params(param, oxigraph_service):
-    sparqlwrapper = SPARQLWrapper(endpoint=oxigraph_service.sparql_endpoint)
+    sparqlwrapper = SPARQLWrapper(sparql_endpoint=oxigraph_service.sparql_endpoint)
     response = sparqlwrapper.query("select * where {?s ?p ?o}", **param.kwargs)
 
     assert parse_reponse_qs(response) == param.expected
