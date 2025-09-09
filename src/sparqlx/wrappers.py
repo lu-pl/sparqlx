@@ -14,7 +14,6 @@ import warnings
 
 import httpx
 from rdflib import Graph
-
 from sparqlx.utils.types import _TResponseFormat, _TSPARQLBinding
 from sparqlx.utils.utils import QueryOperationParameters
 
@@ -85,9 +84,7 @@ class _SPARQLOperationWrapper(AbstractContextManager, AbstractAsyncContextManage
 
     def __enter__(self) -> Self:
         self.__context_wrapper = self.__class__(
-            endpoint=self.endpoint,
-            client=self._client,
-            client_config=self._client_config,
+            endpoint=self.endpoint, client=self._client, aclient=self._aclient
         )
         return self.__context_wrapper
 
@@ -96,9 +93,7 @@ class _SPARQLOperationWrapper(AbstractContextManager, AbstractAsyncContextManage
 
     async def __aenter__(self) -> Self:
         self.__context_wrapper = self.__class__(
-            endpoint=self.endpoint,
-            aclient=self._aclient,
-            aclient_config=self._aclient_config,
+            endpoint=self.endpoint, client=self._client, aclient=self._aclient
         )
         return self.__context_wrapper
 
