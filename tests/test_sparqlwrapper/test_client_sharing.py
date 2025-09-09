@@ -71,6 +71,7 @@ def test_managed_context_client():
     assert sparqlwrapper.client is None
 
     with sparqlwrapper as wrapper_context:
+        assert sparqlwrapper is wrapper_context
         assert isinstance(wrapper_context.client, httpx.Client)
 
         context_client = wrapper_context.client
@@ -90,6 +91,8 @@ def test_shared_context_client():
     assert sparqlwrapper.client is client
 
     with sparqlwrapper as wrapper_context:
+        assert sparqlwrapper is wrapper_context
+
         context_client = wrapper_context.client
         context_client_property = wrapper_context._client
 
