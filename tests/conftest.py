@@ -46,7 +46,7 @@ def oxigraph_service() -> Iterator[OxiGraphEndpoints]:
         yield oxigraph_endpoints
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def oxigraph_service_graph(oxigraph_service) -> Iterator[OxiGraphEndpoints]:
     oxigraph_endpoints = oxigraph_service
 
