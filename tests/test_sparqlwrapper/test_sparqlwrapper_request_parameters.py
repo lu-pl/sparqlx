@@ -11,7 +11,7 @@ class ProtocolRequestParameters(NamedTuple):
     expected: dict
 
 
-params = [
+query_request_params = [
     ProtocolRequestParameters(
         kwargs={"named_graph_uri": "https://named.graph"},
         expected={
@@ -73,10 +73,74 @@ params = [
     ),
 ]
 
+update_request_params = [
+    ProtocolRequestParameters(
+        kwargs={"using_graph_uri": "https://named.graph"},
+        expected={
+            "update": ["insert data {}"],
+            "using-graph-uri": ["https://named.graph"],
+        },
+    ),
+    ProtocolRequestParameters(
+        kwargs={"using_graph_uri": ["https://named.graph", "https://othernamed.graph"]},
+        expected={
+            "update": ["insert data {}"],
+            "using-graph-uri": ["https://named.graph", "https://othernamed.graph"],
+        },
+    ),
+    ProtocolRequestParameters(
+        kwargs={
+            "using_named_graph_uri": [
+                "https://named.graph",
+                "https://othernamed.graph",
+            ],
+        },
+        expected={
+            "update": ["insert data {}"],
+            "using-named-graph-uri": [
+                "https://named.graph",
+                "https://othernamed.graph",
+            ],
+        },
+    ),
+    ProtocolRequestParameters(
+        kwargs={
+            "using_graph_uri": "https://named.graph",
+            "using_named_graph_uri": "https://othernamed.graph",
+        },
+        expected={
+            "update": ["insert data {}"],
+            "using-graph-uri": ["https://named.graph"],
+            "using-named-graph-uri": ["https://othernamed.graph"],
+        },
+    ),
+    ProtocolRequestParameters(
+        kwargs={
+            "using_graph_uri": ["https://named.graph"],
+            "using_named_graph_uri": ["https://othernamed.graph"],
+        },
+        expected={
+            "update": ["insert data {}"],
+            "using-graph-uri": ["https://named.graph"],
+            "using-named-graph-uri": ["https://othernamed.graph"],
+        },
+    ),
+]
 
-@pytest.mark.parametrize("param", params)
+
+@pytest.mark.parametrize("param", query_request_params)
 def test_sparqlwrapper_query_request_params(param, oxigraph_service):
     sparqlwrapper = SPARQLWrapper(sparql_endpoint=oxigraph_service.sparql_endpoint)
     response = sparqlwrapper.query("select * where {?s ?p ?o}", **param.kwargs)
+
+    assert parse_reponse_qs(response) == param.expected
+
+
+@pytest.mark.parametrize("param", update_request_params)
+def test_sparqlwrapper_update_request_params(param, oxigraph_service_graph):
+    sparqlwrapper = SPARQLWrapper(
+        update_endpoint=oxigraph_service_graph.update_endpoint
+    )
+    response = sparqlwrapper.update("insert data {}", **param.kwargs)
 
     assert parse_reponse_qs(response) == param.expected
