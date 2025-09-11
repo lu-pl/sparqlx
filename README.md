@@ -37,11 +37,11 @@ To run a query against an endpoint, instantiate a `SPARQLWrapper` object and cal
 ```python
 from sparqlx import SPARQLWrapper
 
-sparqlwrapper = SPARQLWrapper(
-	endpoint="https://query.wikidata.org/bigdata/namespace/wdq/sparql"
+sparql_wrapper = SPARQLWrapper(
+	sparql_endpoint="https://query.wikidata.org/bigdata/namespace/wdq/sparql"
 )
 
-result: httpx.Response = sparqlwrapper.query("select * where {?s ?p ?o} limit 10")
+result: httpx.Response = sparql_wrapper.query("select * where {?s ?p ?o} limit 10")
 ```
 
 The default response formats are JSON for `SELECT` and `ASK` queries and Turtle for `CONSTRUCT` and `DESCRIBE` queries.
@@ -76,11 +76,11 @@ from sparqlx import SPARQLWrapper
 
 client = httpx.Client(timeout=10.0)
 
-sparqlwrapper = SPARQLWrapper(
-	endpoint="https://query.wikidata.org/bigdata/namespace/wdq/sparql", client=client
+sparql_wrapper = SPARQLWrapper(
+	sparql_endpoint="https://query.wikidata.org/bigdata/namespace/wdq/sparql", client=client
 )
 
-result: httpx.Response = sparqlwrapper.query("select * where {?s ?p ?o} limit 10")
+result: httpx.Response = sparql_wrapper.query("select * where {?s ?p ?o} limit 10")
 
 print(client.is_closed)  # False
 client.close()
@@ -92,12 +92,12 @@ It is also possible to configure `SPARQLWrapper`-managed clients by passing a `d
 ```python
 from sparqlx import SPARQLWrapper
 
-sparqlwrapper = SPARQLWrapper(
-	endpoint="https://query.wikidata.org/bigdata/namespace/wdq/sparql",
+sparql_wrapper = SPARQLWrapper(
+	sparql_endpoint="https://query.wikidata.org/bigdata/namespace/wdq/sparql",
 	client_config={"timeout": 10.0},
 )
 
-result: httpx.Response = sparqlwrapper.query("select * where {?s ?p ?o} limit 10")
+result: httpx.Response = sparql_wrapper.query("select * where {?s ?p ?o} limit 10")
 ```
 
 In that case, `SPARQLWrapper` will internally create and manage `httpx.Client` instances (the default behavior if no client is provided), but will instantiate clients based on the supplied `client_config` kwargs.
@@ -112,12 +112,12 @@ In that case, `SPARQLWrapper` will internally create and manage `httpx.Client` i
 import asyncio
 from sparqlx import SPARQLWrapper
 
-sparqlwrapper = SPARQLWrapper(
-	endpoint="https://query.wikidata.org/bigdata/namespace/wdq/sparql"
+sparql_wrapper = SPARQLWrapper(
+	sparql_endpoint="https://query.wikidata.org/bigdata/namespace/wdq/sparql"
 )
 
 async def run_queries(*queries: str) -> list[httpx.Response]:
-	return await asyncio.gather(*[sparqlwrapper.aquery(query) for query in queries])
+	return await asyncio.gather(*[sparql_wrapper.aquery(query) for query in queries])
 
 results: list[httpx.Response] = asyncio.run(
 	run_queries(*["select * where {?s ?p ?o} limit 10" for _ in range(10)])
@@ -135,11 +135,11 @@ For client sharing or configuration of internal client instances, pass an `httpx
 ```python
 from sparqlx import SPARQLWrapper
 
-sparqlwrapper = SPARQLWrapper(
-	endpoint="https://query.wikidata.org/bigdata/namespace/wdq/sparql"
+sparql_wrapper = SPARQLWrapper(
+	sparql_endpoint="https://query.wikidata.org/bigdata/namespace/wdq/sparql"
 )
 
-results: Iterator[httpx.Response] = sparqlwrapper.queries(
+results: Iterator[httpx.Response] = sparql_wrapper.queries(
 	*["select * where {?s ?p ?o} limit 100" for _ in range(10)]
 )
 ```
@@ -159,15 +159,15 @@ HTTP Responses can be streamed using the `SPARQLWrapper.query_stream` and `SPARQ
 ```python
 from sparqlx import SPARQLWrapper
 
-sparqlwrapper = SPARQLWrapper(
-	endpoint="https://query.wikidata.org/bigdata/namespace/wdq/sparql",
+sparql_wrapper = SPARQLWrapper(
+	sparql_endpoint="https://query.wikidata.org/bigdata/namespace/wdq/sparql",
 )
 
-stream: Iterator[bytes] = sparqlwrapper.query_stream(
+stream: Iterator[bytes] = sparql_wrapper.query_stream(
 	"select * where {?s ?p ?o} limit 10000"
 )
 
-astream: AsyncIterator = sparqlwrapper.aquery_stream(
+astream: AsyncIterator = sparql_wrapper.aquery_stream(
 	"select * where {?s ?p ?o} limit 10000"
 )
 ```
@@ -186,11 +186,11 @@ The streaming method and chunk size (for chunked responses) can be controlled wi
 ```python
 from sparqlx import SPARQLWrapper
 
-sparqlwrapper = SPARQLWrapper(
-	endpoint="https://query.wikidata.org/bigdata/namespace/wdq/sparql",
+sparql_wrapper = SPARQLWrapper(
+	sparql_endpoint="https://query.wikidata.org/bigdata/namespace/wdq/sparql",
 )
 
-with sparqlwrapper as context_wrapper:
+with sparql_wrapper as context_wrapper:
 	result: httpx.Response = context_wrapper.query("select * where {?s ?p ?o} limit 10")
 ```
 
@@ -200,11 +200,11 @@ from sparqlx import SPARQLWrapper
 
 client = httpx.Client()
 
-sparqlwrapper = SPARQLWrapper(
-	endpoint="https://query.wikidata.org/bigdata/namespace/wdq/sparql", client=client
+sparql_wrapper = SPARQLWrapper(
+	sparql_endpoint="https://query.wikidata.org/bigdata/namespace/wdq/sparql", client=client
 )
 
-with sparqlwrapper as context_wrapper:
+with sparql_wrapper as context_wrapper:
 	result: httpx.Response = context_wrapper.query("select * where {?s ?p ?o} limit 10")
 
 	print(client.is_closed)  # False
@@ -214,14 +214,68 @@ print(client.is_closed)  # True
 ---
 ### Update Operations
 
-> Note: Update Operations are not yet implemented.
+`SPARQLx` also supports [Update Operations](https://www.w3.org/TR/sparql12-protocol/#update-operation) according to the SPARQL 1.2 Protocol.
 
-Support for SPARQL 1.2 Protocol [Update Operations](https://www.w3.org/TR/sparql12-protocol/#update-operation) is planned and will follow the same API structure as Query Operations.
-
-The following methods will implement SPARQL Update Operations:
+The following methods implement SPARQL Update:
 
 - `SPARQLWrapper.update`
 - `SPARQLWrapper.aupdate`
 - `SPARQLWrapper.updates`
 
-Update Operations will also be available via the `SPARQLWrapper` context manager interface.
+
+Given an initially empty Triplestore with SPARQL and SPARQL Update endpoints, one could e.g. insert data like so:
+
+```python
+import httpx
+from sparqlx import SPARQLWrapper
+
+sparql_wrapper = SPARQLWrapper(
+	sparql_endpoint="https://triplestore/query",
+	update_endpoint="https://triplestore/update",
+	aclient_config = {
+		"auth": httpx.BasicAuth(username="admin", password="supersecret123")
+	}
+)
+
+with sparql_wrapper as wrapper:
+	store_empty: bool = not wrapper.query(
+		"ask where {{?s ?p ?o} union {graph ?g {?s ?p ?o}}}", convert=True
+	)
+	assert store_empty, "Expected store to be empty."
+
+	wrapper.updates(
+		"insert data {<urn:s> <urn:p> <urn:o>}",
+		"insert data {graph <urn:ng1> {<urn:s> <urn:p> <urn:o>}}",
+		"insert data {graph <urn:ng2> {<urn:s> <urn:p> <urn:o>}}",
+	)
+
+	result = wrapper.query(
+		"select ?g ?s ?p ?o where { {?s ?p ?o} union { graph ?g {?s ?p ?o} }}",
+		convert=True,
+	)
+```
+
+This will run the specified update operations asynchronously with an internally managed event loop; the query then returns the following Python conversion:
+
+```python
+[
+	{
+		"g": rdflib.term.URIRef("urn:ng2"),
+		"s": rdflib.term.URIRef("urn:s"),
+		"p": rdflib.term.URIRef("urn:p"),
+		"o": rdflib.term.URIRef("urn:o"),
+	},
+	{
+		"g": rdflib.term.URIRef("urn:ng1"),
+		"s": rdflib.term.URIRef("urn:s"),
+		"p": rdflib.term.URIRef("urn:p"),
+		"o": rdflib.term.URIRef("urn:o"),
+	},
+	{
+		"g": None,
+		"s": rdflib.term.URIRef("urn:s"),
+		"p": rdflib.term.URIRef("urn:p"),
+		"o": rdflib.term.URIRef("urn:o"),
+	},
+]
+```
