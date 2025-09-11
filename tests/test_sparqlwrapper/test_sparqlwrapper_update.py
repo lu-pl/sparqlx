@@ -2,10 +2,11 @@
 
 from typing import NamedTuple
 
+import httpx
 import pytest
 from rdflib import URIRef
-from sparqlx import SPARQLWrapper
 
+from sparqlx import SPARQLWrapper
 from utils import acall
 
 
@@ -110,3 +111,49 @@ async def test_sparqlwrapper_update(method, param, oxigraph_service_graph):
 
         result_after_update = wrapper.query(param.query, convert=True)
         assert list(result_after_update) == param.expected
+
+
+def test_sparqlwrapper_updates(fuseki_service):
+    """Basic test for SPARQLWrapper.updates.
+
+    Note: This test runs against a Fuseki Triplestore to also test auth for updates.
+    """
+    sparqlwrapper = SPARQLWrapper(
+        sparql_endpoint=fuseki_service.sparql_endpoint,
+        update_endpoint=fuseki_service.update_endpoint,
+        aclient_config={"auth": httpx.BasicAuth(username="admin", password="pm")},
+    )
+
+    sparqlwrapper.updates(
+        "insert data {<urn:s> <urn:p> <urn:o>}",
+        "insert data {graph <urn:ng1> {<urn:s> <urn:p> <urn:o>}}",
+        "insert data {graph <urn:ng2> {<urn:s> <urn:p> <urn:o>}}",
+    )
+
+    result = sparqlwrapper.query(
+        "select ?g ?s ?p ?o where { {?s ?p ?o} union { graph ?g {?s ?p ?o} }}",
+        convert=True,
+    )
+
+    expected = [
+        {
+            "g": None,
+            "s": URIRef("urn:s"),
+            "p": URIRef("urn:p"),
+            "o": URIRef("urn:o"),
+        },
+        {
+            "g": URIRef("urn:ng1"),
+            "s": URIRef("urn:s"),
+            "p": URIRef("urn:p"),
+            "o": URIRef("urn:o"),
+        },
+        {
+            "g": URIRef("urn:ng2"),
+            "s": URIRef("urn:s"),
+            "p": URIRef("urn:p"),
+            "o": URIRef("urn:o"),
+        },
+    ]
+
+    assert all(_result in expected for _result in list(result))
