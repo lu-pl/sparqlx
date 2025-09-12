@@ -5,13 +5,12 @@ import json
 import httpx
 from rdflib import BNode, Graph, Literal, URIRef, XSD
 from rdflib.plugins.sparql import prepareQuery
-
 from sparqlx.utils.types import _TResponseFormat, _TSPARQLBinding, _TSPARQLBindingValue
 
 
 def _convert_bindings(
     response: httpx.Response,
-) -> Iterator[_TSPARQLBinding]:
+) -> list[_TSPARQLBinding]:
     """Get flat dicts from a SPARQL SELECT JSON response."""
 
     try:
@@ -58,8 +57,7 @@ def _convert_bindings(
                 case _:  # pragma: no cover
                     assert False, "This should never happen."
 
-    for binding in response_bindings:
-        yield dict(_get_binding_pairs(binding))
+    return [dict(_get_binding_pairs(binding)) for binding in response_bindings]
 
 
 def _convert_graph(response: httpx.Response) -> Graph:
