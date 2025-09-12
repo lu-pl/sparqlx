@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.2.0](https://github.com/lu-pl/sparqlx/compare/v0.1.0...v0.2.0) (2025-09-12)
+
+
+### ⚠ BREAKING CHANGES
+
+* implement SPARQL Update operations
+
+### Features
+
+* implement SPARQL Update operations ([2c1f3b8](https://github.com/lu-pl/sparqlx/commit/2c1f3b871065a047e1c832b8f9eec905d42c1267))
+* implement support for graph uri and version parameters ([9c4ff00](https://github.com/lu-pl/sparqlx/commit/9c4ff00dc57c745fb95e9d65e8e20d18ead37e94))
+* return current instance from context manager entry ([55fe5ba](https://github.com/lu-pl/sparqlx/commit/55fe5ba3acf555d96319c274ae293fc0296caa9f))
+
+
+### Bug Fixes
+
+* add bool to convert union type ([3ed4618](https://github.com/lu-pl/sparqlx/commit/3ed46185b834b0eb799f37d64da0a7738ecbf32a))
+* drop graph in fuseki_service_graph per function ([3cf33a0](https://github.com/lu-pl/sparqlx/commit/3cf33a08e3234c076ec3cec091068b9dbd06dfca))
+* pass only _client/_aclient properties to context SPARQLWrapper ([287eb68](https://github.com/lu-pl/sparqlx/commit/287eb684bc5b6ea6b6da0cb93374500c0eeff66f))
+* set oxigraph_service_graph fixture to function scope ([f6c566f](https://github.com/lu-pl/sparqlx/commit/f6c566fef02dffbca08a8e0ed541f5a25900ebe7))
+
 ## 0.1.0 (2025-08-28)
 
 
