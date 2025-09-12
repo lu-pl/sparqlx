@@ -5,8 +5,8 @@ from typing import NamedTuple
 import httpx
 import pytest
 from rdflib import URIRef
-
 from sparqlx import SPARQLWrapper
+
 from utils import acall
 
 
@@ -100,7 +100,7 @@ async def test_sparqlwrapper_update(method, param, oxigraph_service_graph):
 
     with sparqlwrapper as wrapper:
         result_before_update = wrapper.query(param.query, convert=True)
-        assert not list(result_before_update)
+        assert not result_before_update
 
         await acall(
             obj=wrapper,
@@ -110,7 +110,7 @@ async def test_sparqlwrapper_update(method, param, oxigraph_service_graph):
         )
 
         result_after_update = wrapper.query(param.query, convert=True)
-        assert list(result_after_update) == param.expected
+        assert result_after_update == param.expected
 
 
 def test_sparqlwrapper_updates(fuseki_service):
@@ -156,4 +156,4 @@ def test_sparqlwrapper_updates(fuseki_service):
         },
     ]
 
-    assert all(_result in expected for _result in list(result))
+    assert all(_result in expected for _result in result)

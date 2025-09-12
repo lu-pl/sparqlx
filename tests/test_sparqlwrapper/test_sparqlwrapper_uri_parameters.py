@@ -91,4 +91,4 @@ def test_sparqlwrapper_default_graph_uri(params, oxigraph_service_graph):
         named_graph_uri=params.named_graph_uri,
     )
 
-    assert list(result) == params.expected
+    assert result == params.expected
