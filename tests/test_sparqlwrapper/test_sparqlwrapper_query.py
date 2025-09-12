@@ -45,7 +45,6 @@ params = [
     QueryOperationParameter(
         query=select_query_xy_values,
         expected=[{"x": 1, "y": 2}, {"x": 3, "y": 4}],
-        compare=lambda x, y: list(x) == list(y),
     ),
     QueryOperationParameter(query=ask_query_true, expected=True),
     QueryOperationParameter(query=ask_query_false, expected=False),
@@ -64,7 +63,6 @@ params = [
             {"x": Literal("2024", datatype=XSD.gYear)},
             {"x": Literal("2024-01", datatype=XSD.gYearMonth)},
         ],
-        compare=lambda x, y: list(x) == list(y),
     ),
     QueryOperationParameter(
         query=select_query_bnode,
