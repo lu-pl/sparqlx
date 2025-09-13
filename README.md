@@ -55,7 +55,7 @@ The default response formats are JSON for `SELECT` and `ASK` queries and Turtle 
 
 If the `convert` parameter is set to `True`, `SPARQLWrapper.query` returns
 
-- an `Iterator` of Python dictionaries with dict-values cast to RDFLib objects for `SELECT` queries
+- a `list` of Python dictionaries with dict-values cast to RDFLib objects for `SELECT` queries
 - a Python `bool` for `ASK` queries
 - an `rdflib.Graph` instance for `CONSTRUCT` and `DESCRIBE` queries.
 
@@ -144,11 +144,13 @@ results: Iterator[httpx.Response] = sparql_wrapper.queries(
 )
 ```
 
-Note that since `SPARQLWrapper.queries` runs async code under the hood, httpx client sharing or configuration requires setting `aclient` or `aclient_config` in the respective `SPARQLWrapper`."
+Note that since `SPARQLWrapper.queries` runs async code under the hood, httpx client sharing or configuration requires setting `aclient` or `aclient_config` in the respective `SPARQLWrapper`.
+Also, `SPARQLWrapper.queries` creates an event loop and therefore cannot be called from asynchronous code.
 
 If an `httpx.AsyncClient` is supplied, the client will be closed after the first call to `SPARQLWrapper.queries`.
 
 User code that wants to run multiple calls to `queries` can still exert control over the client by using `aclient_config`. For finer control over concurrent query execution, use the async interface.
+
 
 ---
 ### Response Streaming
@@ -214,7 +216,7 @@ print(client.is_closed)  # True
 ---
 ### Update Operations
 
-`SPARQLx` also supports [Update Operations](https://www.w3.org/TR/sparql12-protocol/#update-operation) according to the SPARQL 1.2 Protocol.
+`SPARQLx` supports [Update Operations](https://www.w3.org/TR/sparql12-protocol/#update-operation) according to the SPARQL 1.2 Protocol.
 
 The following methods implement SPARQL Update:
 
@@ -279,3 +281,7 @@ This will run the specified update operations asynchronously with an internally 
 	},
 ]
 ```
+
+## SPARQL 1.2 Protocol Implementation
+
+[todo]
