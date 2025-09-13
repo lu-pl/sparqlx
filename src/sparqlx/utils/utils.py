@@ -67,7 +67,7 @@ def _convert_graph(response: httpx.Response) -> Graph:
 
 
 def _convert_ask(response: httpx.Response) -> bool:
-    return json.loads(response.content)["boolean"]
+    return response.json()["boolean"]
 
 
 class MimeTypeMap(UserDict):
