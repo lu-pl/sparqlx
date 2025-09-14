@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.3.0](https://github.com/lu-pl/sparqlx/compare/v0.2.0...v0.3.0) (2025-09-14)
+
+
+### ⚠ BREAKING CHANGES
+
+* change SELECT conversion type to list[_SPARQLBinding]
+
+### Features
+
+* change SELECT conversion type to list[_SPARQLBinding] ([4789f1a](https://github.com/lu-pl/sparqlx/commit/4789f1a83636473fff2bac66840c6d93b4ee3cd7))
+
 ## [0.2.0](https://github.com/lu-pl/sparqlx/compare/v0.1.0...v0.2.0) (2025-09-12)
 
 
