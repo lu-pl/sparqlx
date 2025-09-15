@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/lu-pl/sparqlx/compare/v0.3.0...v0.3.1) (2025-09-15)
+
+
+### Documentation
+
+* minor doc cleanup ([c7434cf](https://github.com/lu-pl/sparqlx/commit/c7434cffa6b687297e0cc37c87d63074820b7906))
+
 ## [0.3.0](https://github.com/lu-pl/sparqlx/compare/v0.2.0...v0.3.0) (2025-09-14)
 
 
