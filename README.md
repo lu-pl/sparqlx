@@ -6,7 +6,8 @@
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
 
-Python library for [httpx](https://www.python-httpx.org/)-based SPARQL Query and Update Operations according to the [SPARQL 1.2 Protocol](https://www.w3.org/TR/sparql12-protocol/) (see [Protocol Implemention](SPARQL-1.2-Protocol-Implementation)).
+Python library for [httpx](https://www.python-httpx.org/)-based SPARQL Query and Update Operations according to the [SPARQL 1.2 Protocol](https://www.w3.org/TR/sparql12-protocol/).
+
 
 > WARNING: This project is in an early stage of development and should be used with caution.
 
@@ -322,7 +323,7 @@ for **Query Operations**, where `default-graph-uri` and `named-graph-uri` corres
 for **Update Operations**, where `using-graph-uri` and `using-named-graph-uri` correspond to SPARQL `USING` and `USING NAMED`, and likewise take precedence over SPARQL clauses.
 
 
-SPARQL Protocol request parameters are reflected in the `SPARQLx` object API:
+SPARQL Protocol request parameters are reflected in the `SPARQLx` API:
 
 - Methods implementing query operations take `default_graph_uri` and `named_graph_uri` parameters.
 - Methods implementing udpate operations take `using_graph_uri` and `using_named_graph_uri` parameters.
