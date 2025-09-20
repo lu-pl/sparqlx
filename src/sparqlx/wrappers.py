@@ -1,7 +1,7 @@
 """SPARQL query and update operation classes implementing the SPARQL 1.1 Protocol."""
 
 import asyncio
-from collections.abc import AsyncIterator, Callable, Iterable, Iterator
+from collections.abc import AsyncIterator, Callable, Iterator
 from contextlib import (
     AbstractAsyncContextManager,
     AbstractContextManager,
@@ -14,7 +14,7 @@ import warnings
 
 import httpx
 from rdflib import Graph
-from sparqlx.utils.types import _TResponseFormat, _TSPARQLBinding
+from sparqlx.utils.types import _TRequestDataValue, _TResponseFormat, _TSPARQLBinding
 from sparqlx.utils.utils import QueryOperationParameters, UpdateOperationParameters
 
 
@@ -117,8 +117,8 @@ class SPARQLWrapper(_SPARQLOperationWrapper):
         convert: TLiteral[True],
         response_format: _TResponseFormat | str | None = None,
         version: str | None = None,
-        default_graph_uri: str | Iterable[str] | None = None,
-        named_graph_uri: str | Iterable[str] | None = None,
+        default_graph_uri: _TRequestDataValue = None,
+        named_graph_uri: _TRequestDataValue = None,
     ) -> list[_TSPARQLBinding] | Graph | bool: ...
 
     @overload
@@ -128,8 +128,8 @@ class SPARQLWrapper(_SPARQLOperationWrapper):
         convert: TLiteral[False] = False,
         response_format: _TResponseFormat | str | None = None,
         version: str | None = None,
-        default_graph_uri: str | Iterable[str] | None = None,
-        named_graph_uri: str | Iterable[str] | None = None,
+        default_graph_uri: _TRequestDataValue = None,
+        named_graph_uri: _TRequestDataValue = None,
     ) -> httpx.Response: ...
 
     def query(
@@ -138,8 +138,8 @@ class SPARQLWrapper(_SPARQLOperationWrapper):
         convert: bool = False,
         response_format: _TResponseFormat | str | None = None,
         version: str | None = None,
-        default_graph_uri: str | Iterable[str] | None = None,
-        named_graph_uri: str | Iterable[str] | None = None,
+        default_graph_uri: _TRequestDataValue = None,
+        named_graph_uri: _TRequestDataValue = None,
     ) -> httpx.Response | list[_TSPARQLBinding] | Graph | bool:
         params = QueryOperationParameters(
             query=query,
@@ -169,8 +169,8 @@ class SPARQLWrapper(_SPARQLOperationWrapper):
         convert: TLiteral[True],
         response_format: _TResponseFormat | str | None = None,
         version: str | None = None,
-        default_graph_uri: str | Iterable[str] | None = None,
-        named_graph_uri: str | Iterable[str] | None = None,
+        default_graph_uri: _TRequestDataValue = None,
+        named_graph_uri: _TRequestDataValue = None,
     ) -> list[_TSPARQLBinding] | Graph | bool: ...
 
     @overload
@@ -180,8 +180,8 @@ class SPARQLWrapper(_SPARQLOperationWrapper):
         convert: TLiteral[False] = False,
         response_format: _TResponseFormat | str | None = None,
         version: str | None = None,
-        default_graph_uri: str | Iterable[str] | None = None,
-        named_graph_uri: str | Iterable[str] | None = None,
+        default_graph_uri: _TRequestDataValue = None,
+        named_graph_uri: _TRequestDataValue = None,
     ) -> httpx.Response: ...
 
     async def aquery(
@@ -190,8 +190,8 @@ class SPARQLWrapper(_SPARQLOperationWrapper):
         convert: bool = False,
         response_format: _TResponseFormat | str | None = None,
         version: str | None = None,
-        default_graph_uri: str | Iterable[str] | None = None,
-        named_graph_uri: str | Iterable[str] | None = None,
+        default_graph_uri: _TRequestDataValue = None,
+        named_graph_uri: _TRequestDataValue = None,
     ) -> httpx.Response | list[_TSPARQLBinding] | Graph | bool:
         params = QueryOperationParameters(
             query=query,
@@ -219,8 +219,8 @@ class SPARQLWrapper(_SPARQLOperationWrapper):
         query: str,
         response_format: _TResponseFormat | str | None = None,
         version: str | None = None,
-        default_graph_uri: str | Iterable[str] | None = None,
-        named_graph_uri: str | Iterable[str] | None = None,
+        default_graph_uri: _TRequestDataValue = None,
+        named_graph_uri: _TRequestDataValue = None,
         streaming_method: Callable[
             [httpx.Response], Iterator[T]
         ] = httpx.Response.iter_bytes,
@@ -257,8 +257,8 @@ class SPARQLWrapper(_SPARQLOperationWrapper):
         query: str,
         response_format: _TResponseFormat | str | None = None,
         version: str | None = None,
-        default_graph_uri: str | Iterable[str] | None = None,
-        named_graph_uri: str | Iterable[str] | None = None,
+        default_graph_uri: _TRequestDataValue = None,
+        named_graph_uri: _TRequestDataValue = None,
         streaming_method: Callable[
             [httpx.Response], AsyncIterator[T]
         ] = httpx.Response.aiter_bytes,
@@ -297,8 +297,8 @@ class SPARQLWrapper(_SPARQLOperationWrapper):
         convert: TLiteral[True],
         response_format: _TResponseFormat | str | None = None,
         version: str | None = None,
-        default_graph_uri: str | Iterable[str] | None = None,
-        named_graph_uri: str | Iterable[str] | None = None,
+        default_graph_uri: _TRequestDataValue = None,
+        named_graph_uri: _TRequestDataValue = None,
     ) -> Iterator[list[_TSPARQLBinding] | Graph | bool]: ...
 
     @overload
@@ -308,8 +308,8 @@ class SPARQLWrapper(_SPARQLOperationWrapper):
         convert: TLiteral[False] = False,
         response_format: _TResponseFormat | str | None = None,
         version: str | None = None,
-        default_graph_uri: str | Iterable[str] | None = None,
-        named_graph_uri: str | Iterable[str] | None = None,
+        default_graph_uri: _TRequestDataValue = None,
+        named_graph_uri: _TRequestDataValue = None,
     ) -> Iterator[httpx.Response]: ...
 
     def queries(
@@ -318,8 +318,8 @@ class SPARQLWrapper(_SPARQLOperationWrapper):
         convert: bool = False,
         response_format: _TResponseFormat | str | None = None,
         version: str | None = None,
-        default_graph_uri: str | Iterable[str] | None = None,
-        named_graph_uri: str | Iterable[str] | None = None,
+        default_graph_uri: _TRequestDataValue = None,
+        named_graph_uri: _TRequestDataValue = None,
     ) -> Iterator[httpx.Response | list[_TSPARQLBinding] | Graph | bool]:
         query_component = SPARQLWrapper(
             sparql_endpoint=self.sparql_endpoint, aclient=self._aclient
@@ -350,8 +350,8 @@ class SPARQLWrapper(_SPARQLOperationWrapper):
         self,
         update_request: str,
         version: str | None = None,
-        using_graph_uri: str | Iterable[str] | None = None,
-        using_named_graph_uri: str | Iterable[str] | None = None,
+        using_graph_uri: _TRequestDataValue = None,
+        using_named_graph_uri: _TRequestDataValue = None,
     ) -> httpx.Response:
         params = UpdateOperationParameters(
             update_request=update_request,
@@ -373,8 +373,8 @@ class SPARQLWrapper(_SPARQLOperationWrapper):
         self,
         update_request: str,
         version: str | None = None,
-        using_graph_uri: str | Iterable[str] | None = None,
-        using_named_graph_uri: str | Iterable[str] | None = None,
+        using_graph_uri: _TRequestDataValue = None,
+        using_named_graph_uri: _TRequestDataValue = None,
     ) -> httpx.Response:
         params = UpdateOperationParameters(
             update_request=update_request,
@@ -396,8 +396,8 @@ class SPARQLWrapper(_SPARQLOperationWrapper):
         self,
         *update_requests,
         version: str | None = None,
-        using_graph_uri: str | Iterable[str] | None = None,
-        using_named_graph_uri: str | Iterable[str] | None = None,
+        using_graph_uri: _TRequestDataValue = None,
+        using_named_graph_uri: _TRequestDataValue = None,
     ) -> Iterator[httpx.Response]:
         update_component = SPARQLWrapper(
             update_endpoint=self.update_endpoint, aclient=self._aclient
