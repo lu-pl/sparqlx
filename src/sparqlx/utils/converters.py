@@ -59,7 +59,17 @@ def _convert_bindings(
 
 
 def _convert_graph(response: httpx.Response) -> Graph:
-    _format, *_ = response.headers["content-type"].split(";")
+    """Convert the content of an HTTP response to an rdflib.Graph.
+
+    Note: httpx.Response.headers is always an instance of httpx.Headers
+    (a mutable mapping).
+    """
+    _format: str | None = (
+        content_type
+        if (content_type := response.headers.get("content-type")) is None
+        else content_type.split(";")[0].strip()
+    )
+
     graph = Graph().parse(response.content, format=_format)
     return graph
 
