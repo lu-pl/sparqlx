@@ -22,7 +22,7 @@ bindings_format_map = MimeTypeMap(
 graph_format_map = MimeTypeMap(
     {
         "turtle": "text/turtle",
-        "xml": "application/xml",
+        "xml": "application/rdf+xml",
         "ntriples": "application/n-triples",
         "json-ld": "application/ld+json",
     }
