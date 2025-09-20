@@ -55,7 +55,10 @@ class QueryOperationParameters:
             default_graph_uri=default_graph_uri,
             named_graph_uri=named_graph_uri,
         )
-        self.headers = {"Accept": self.response_format}
+        self.headers = {
+            "Accept": self.response_format,
+            "Content-Type": "application/x-www-form-urlencoded",
+        }
 
     @property
     def converter(self):
