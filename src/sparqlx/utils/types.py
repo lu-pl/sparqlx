@@ -9,6 +9,14 @@ from rdflib import BNode, Literal, URIRef
 from rdflib.compat import long_type
 from rdflib.xsd_datetime import Duration
 
+
+type _TRequestDataValue = str | list[str] | tuple[str, ...] | None
+"""Value type for httpx.RequestValue type.
+
+See the httpx URL encoding function:
+https://github.com/encode/httpx/blob/4b23574cf83307ce27d3b14b4a425dc58c57d28d/httpx/_content.py#L136
+"""
+
 _TLiteralToPython: TypeAlias = (
     Literal
     | None
