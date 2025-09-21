@@ -14,6 +14,12 @@ import warnings
 
 import httpx
 from rdflib import Graph
+from sparqlx.utils.logging_hooks import (
+    alog_request,
+    alog_response,
+    log_request,
+    log_response,
+)
 from sparqlx.utils.types import _TRequestDataValue, _TResponseFormat, _TSPARQLBinding
 from sparqlx.utils.utils import QueryOperationParameters, UpdateOperationParameters
 
@@ -42,19 +48,29 @@ class _SPARQLOperationWrapper(AbstractContextManager, AbstractAsyncContextManage
 
     @property
     def _client(self) -> httpx.Client:
-        if self._manage_client:
-            return httpx.Client(**self._client_config)
+        client = (
+            httpx.Client(**self._client_config) if self._manage_client else self.client
+        )
+        assert isinstance(client, httpx.Client)  # type narrow
 
-        assert isinstance(self.client, httpx.Client)  # type narrow
-        return self.client
+        client.event_hooks["request"].append(log_request)
+        client.event_hooks["response"].append(log_response)
+
+        return client
 
     @property
     def _aclient(self) -> httpx.AsyncClient:
-        if self._manage_aclient:
-            return httpx.AsyncClient(**self._aclient_config)
+        aclient = (
+            httpx.AsyncClient(**self._aclient_config)
+            if self._manage_aclient
+            else self.aclient
+        )
+        assert isinstance(aclient, httpx.AsyncClient)  # type narrow
 
-        assert isinstance(self.aclient, httpx.AsyncClient)  # type narrow
-        return self.aclient
+        aclient.event_hooks["request"].append(alog_request)
+        aclient.event_hooks["response"].append(alog_response)
+
+        return aclient
 
     @contextmanager
     def _managed_client(self) -> Iterator[httpx.Client]:
