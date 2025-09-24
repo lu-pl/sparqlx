@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.4.0](https://github.com/lu-pl/sparqlx/compare/v0.3.0...v0.4.0) (2025-09-24)
+
+
+### Features
+
+* add event-based logging ([04fe325](https://github.com/lu-pl/sparqlx/commit/04fe3256176f7d319ba1bfce7b1edc72d5af98c8))
+* check for missing headers.content-type in _convert_graph ([3e845db](https://github.com/lu-pl/sparqlx/commit/3e845db5cd0918c2387b555a507aa20fc68a4e34))
+* introduce _TRequestDataValue for httpx data mappings ([11ea18f](https://github.com/lu-pl/sparqlx/commit/11ea18f79d7c9e816870af8e59c9892dd1866923))
+* set header content-type to "application/x-www-form-urlencoded" ([b446944](https://github.com/lu-pl/sparqlx/commit/b44694426d6b6248019808195b76284bf163e610))
+
+
+### Bug Fixes
+
+* Use application/rdf+xml as Graph response type for XML ([6453dd3](https://github.com/lu-pl/sparqlx/commit/6453dd35be2c47f93652972a1057f0d2303163ab))
+
+
+### Documentation
+
+* minor doc cleanup ([c7434cf](https://github.com/lu-pl/sparqlx/commit/c7434cffa6b687297e0cc37c87d63074820b7906))
+
 ## [0.3.0](https://github.com/lu-pl/sparqlx/compare/v0.2.0...v0.3.0) (2025-09-14)
 
 
