@@ -283,7 +283,7 @@ This will run the specified update operations asynchronously with an internally 
 ]
 ```
 
-## SPARQL 1.2 Protocol Implementation
+## SPARQL 1.2 Protocol Client Implementation
 
 `SPARQLx` aims to provide a convenient Python interface for interacting with SPARQL endpoints according to the [SPARQL 1.2 Protocol](https://www.w3.org/TR/sparql12-protocol/).
 
