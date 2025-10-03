@@ -219,7 +219,7 @@ print(client.is_closed)  # True
 ---
 ### Update Operations
 
-`SPARQLx` supports [Update Operations](https://www.w3.org/TR/sparql12-protocol/#update-operation) according to the SPARQL 1.2 Protocol.
+`sparqlx` supports [Update Operations](https://www.w3.org/TR/sparql12-protocol/#update-operation) according to the SPARQL 1.2 Protocol.
 
 The following methods implement SPARQL Update:
 
@@ -287,7 +287,7 @@ This will run the specified update operations asynchronously with an internally 
 
 ## SPARQL 1.2 Protocol Client Implementation
 
-`SPARQLx` aims to provide a convenient Python interface for interacting with SPARQL endpoints according to the [SPARQL 1.2 Protocol](https://www.w3.org/TR/sparql12-protocol/).
+`sparqlx` aims to provide a convenient Python interface for interacting with SPARQL endpoints according to the [SPARQL 1.2 Protocol](https://www.w3.org/TR/sparql12-protocol/).
 
 The SPARQL Protocol provides a specification for HTTP operations targeting SPARQL Query and Update endpoints.
 
@@ -303,7 +303,7 @@ Generally, the SPARQL 1.2 Protocol defines the following HTTP operations for SPA
 See [2.2 Query Operation](https://www.w3.org/TR/sparql12-protocol/#query-operation) and [2.3 Update Operation](https://www.w3.org/TR/sparql12-protocol/#update-operation).
 
 
-SPARQLx implements <b>URL-encoded POST</b> for both Query and Update operations.
+`sparqlx` implements <b>URL-encoded POST</b> for both Query and Update operations.
 
 This allows to send a Request Content Type in the Accept Header and both the Query/Update Request strings and Query Parameters in the Request Message Body.
 
@@ -325,7 +325,7 @@ for **Query Operations**, where `default-graph-uri` and `named-graph-uri` corres
 for **Update Operations**, where `using-graph-uri` and `using-named-graph-uri` correspond to SPARQL `USING` and `USING NAMED`, and likewise take precedence over SPARQL clauses.
 
 
-SPARQL Protocol request parameters are reflected in the `SPARQLx` API:
+SPARQL Protocol request parameters are reflected in the `sparqlx` API:
 
 - Methods implementing query operations take `default_graph_uri` and `named_graph_uri` parameters.
 - Methods implementing udpate operations take `using_graph_uri` and `using_named_graph_uri` parameters.
