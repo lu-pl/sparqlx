@@ -356,7 +356,7 @@ qlever_wikidata_endpoint = "https://qlever.cs.uni-freiburg.de/api//wikidata"
 sparql_wrapper = SPARQLWrapper(sparql_endpoint=qlever_wikidata_endpoint)
 
 json_result_stream: Iterator[bytes] = sparql_wrapper.query_stream(
-	query="select ?s ?p ?p where {?s ?p ?o} limit 100000"
+	query="select ?s ?p ?o where {?s ?p ?o} limit 100000"
 )
 
 class IJSONIteratorAdapter:
