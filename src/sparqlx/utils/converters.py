@@ -2,7 +2,7 @@ from collections.abc import Iterator
 import json
 
 import httpx
-from rdflib import BNode, Graph, Literal, URIRef, XSD
+from rdflib import BNode, Graph, Literal, URIRef
 from sparqlx.utils.types import _TSPARQLBinding, _TSPARQLBindingValue
 
 
@@ -42,13 +42,8 @@ def _convert_bindings(
                         datatype=binding_data.get("datatype", None),
                     )
 
-                    # call toPython in any case for validation
                     literal_to_python = literal.toPython()
-
-                    if literal.datatype in (XSD.gYear, XSD.gYearMonth):
-                        yield (var, literal)
-                    else:
-                        yield (var, literal_to_python)
+                    yield (var, literal_to_python)
 
                 case "bnode":
                     yield (var, BNode(binding_data["value"]))
