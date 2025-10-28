@@ -12,9 +12,8 @@ import httpx
 import pytest
 from rdflib import BNode, Graph, Literal, URIRef, XSD
 from rdflib.compare import isomorphic
-from sparqlx import SPARQLWrapper
-from sparqlx.utils.utils import bindings_format_map, graph_format_map
 
+from conftest import FusekiEndpoints
 from data.queries import (
     ask_query_false,
     ask_query_true,
@@ -24,6 +23,8 @@ from data.queries import (
     select_query_types,
     select_query_xy_values,
 )
+from sparqlx import SPARQLWrapper
+from sparqlx.utils.utils import bindings_format_map, graph_format_map
 from utils import acall
 
 
@@ -78,8 +79,10 @@ params = [
 @pytest.mark.parametrize("method", ["query", "aquery"])
 @pytest.mark.parametrize("param", params)
 @pytest.mark.asyncio
-async def test_sparqlwrapper_query(method, param, oxigraph_service):
-    endpoint: str = oxigraph_service.sparql_endpoint
+async def test_sparqlwrapper_query(method, param, triplestore):
+    """Run a query with convert=True and compare the result to the expected bindings."""
+
+    endpoint: str = triplestore.sparql_endpoint
     sparqlwrapper = SPARQLWrapper(sparql_endpoint=endpoint)
 
     result_converted = await acall(
@@ -102,16 +105,18 @@ async def test_sparqlwrapper_query(method, param, oxigraph_service):
 )
 @pytest.mark.parametrize(
     "response_format",
-    # [None, *bindings_format_map.keys(), "application/x-binary-rdf-results-table"],
     [None, *bindings_format_map.keys()],
 )
 @pytest.mark.asyncio
 async def test_sparqlwrapper_query_binding_result_formats(
-    method, query, response_format, oxigraph_service
+    method,
+    query,
+    response_format,
+    triplestore,
 ):
     """Run SELECT and ASK queries with bindings result formats."""
 
-    endpoint: str = oxigraph_service.sparql_endpoint
+    endpoint: str = triplestore.sparql_endpoint
     sparqlwrapper = SPARQLWrapper(sparql_endpoint=endpoint)
 
     result = await acall(
@@ -128,14 +133,25 @@ async def test_sparqlwrapper_query_binding_result_formats(
 )
 @pytest.mark.asyncio
 async def test_sparqlwrapper_query_graph_result_formats(
-    method, query, response_format, oxigraph_service_graph
+    method,
+    query,
+    response_format,
+    triplestore_with_data,
 ):
     """Run CONSTRUCT and DESCRIBE queries with graph result formats.
 
-    The tests uses the oxigraph_service_graph fixture in order
+    The tests uses the oxigraph_service_with_data fixture in order
     to retrieve a non-empty graph object on DESCRIBE queries.
+
+    Note: Fuseki responds with 406 if 'application/rdf+xml' is requested as graph format;
+    the store can handle 'text/xml' though, so this can be considered a bug in Fuseki.
     """
-    endpoint: str = oxigraph_service_graph.sparql_endpoint
+    if isinstance(triplestore_with_data, FusekiEndpoints) and response_format == "xml":
+        pytest.skip(
+            reason="Fuseki currently only handles 'text/xml', not 'application/rdf+xml."
+        )
+
+    endpoint: str = triplestore_with_data.sparql_endpoint
     sparqlwrapper = SPARQLWrapper(sparql_endpoint=endpoint)
 
     result = await acall(
@@ -155,8 +171,9 @@ async def test_sparqlwrapper_query_graph_result_formats(
 
 
 @pytest.mark.asyncio
-async def test_sparqlwrapper_warn_open_client(oxigraph_service):
-    endpoint: str = oxigraph_service.sparql_endpoint
+async def test_sparqlwrapper_warn_open_client(triplestore):
+    """Pass a client/aclient and check if a warning is emitted."""
+    endpoint: str = triplestore.sparql_endpoint
 
     client = httpx.Client()
     aclient = httpx.AsyncClient()
@@ -189,8 +206,12 @@ async def test_sparqlwrapper_warn_open_client(oxigraph_service):
     ],
 )
 @pytest.mark.asyncio
-async def test_sparql_wrapper_context_managers(query, oxigraph_service):
-    endpoint: str = oxigraph_service.sparql_endpoint
+async def test_sparql_wrapper_context_managers(query, triplestore):
+    """Check unmanaged client/aclient status in context managers.
+
+    The tests assert that client/aclient is open within a context
+    and is closed after leaving the context."""
+    endpoint: str = triplestore.sparql_endpoint
 
     client = httpx.Client()
     aclient = httpx.AsyncClient()
@@ -226,8 +247,9 @@ async def test_sparql_wrapper_context_managers(query, oxigraph_service):
     ],
 )
 @pytest.mark.asyncio
-async def test_sparqlwrapper_streaming(query, oxigraph_service):
-    endpoint: str = oxigraph_service.sparql_endpoint
+async def test_sparqlwrapper_streaming(query, triplestore):
+    """Sync/async stream a response and compare lists of chunks."""
+    endpoint: str = triplestore.sparql_endpoint
     sparqlwrapper = SPARQLWrapper(sparql_endpoint=endpoint)
 
     stream = sparqlwrapper.query_stream(query, chunk_size=1)
@@ -249,8 +271,8 @@ async def test_sparqlwrapper_streaming(query, oxigraph_service):
         describe_query,
     ],
 )
-def test_sparqlwrapper_queries(query, oxigraph_service):
-    endpoint: str = oxigraph_service.sparql_endpoint
+def test_sparqlwrapper_queries(query, triplestore):
+    endpoint: str = triplestore.sparql_endpoint
     sparqlwrapper = SPARQLWrapper(sparql_endpoint=endpoint)
 
     queries: list[str] = [query for _ in range(5)]

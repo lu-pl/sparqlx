@@ -1,9 +1,9 @@
 from typing import NamedTuple
 
 import pytest
-from sparqlx import SPARQLWrapper
 
-from utils import parse_reponse_qs
+from sparqlx import SPARQLWrapper
+from utils import parse_response_qs
 
 
 class ProtocolRequestParameters(NamedTuple):
@@ -129,18 +129,16 @@ update_request_params = [
 
 
 @pytest.mark.parametrize("param", query_request_params)
-def test_sparqlwrapper_query_request_params(param, oxigraph_service):
-    sparqlwrapper = SPARQLWrapper(sparql_endpoint=oxigraph_service.sparql_endpoint)
+def test_sparqlwrapper_query_request_params(param, triplestore):
+    sparqlwrapper = SPARQLWrapper(sparql_endpoint=triplestore.sparql_endpoint)
     response = sparqlwrapper.query("select * where {?s ?p ?o}", **param.kwargs)
 
-    assert parse_reponse_qs(response) == param.expected
+    assert parse_response_qs(response) == param.expected
 
 
 @pytest.mark.parametrize("param", update_request_params)
-def test_sparqlwrapper_update_request_params(param, oxigraph_service_graph):
-    sparqlwrapper = SPARQLWrapper(
-        update_endpoint=oxigraph_service_graph.update_endpoint
-    )
+def test_sparqlwrapper_update_request_params(param, triplestore):
+    sparqlwrapper = SPARQLWrapper(update_endpoint=triplestore.update_endpoint)
     response = sparqlwrapper.update("insert data {}", **param.kwargs)
 
-    assert parse_reponse_qs(response) == param.expected
+    assert parse_response_qs(response) == param.expected
