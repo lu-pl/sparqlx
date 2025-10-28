@@ -5,7 +5,10 @@ from typing import NamedTuple
 
 import pytest
 from rdflib import URIRef
+
+from conftest import FusekiEndpoints
 from sparqlx import SPARQLWrapper
+from utils import sparql_result_set_equal
 
 
 class URITestParameter(NamedTuple):
@@ -80,10 +83,22 @@ mixed_uri_parameters = [
         default_graph_uri_params, named_graph_uri_params, mixed_uri_parameters
     ),
 )
-def test_sparqlwrapper_default_graph_uri(params, oxigraph_service_graph):
-    sparqlwrapper = SPARQLWrapper(
-        sparql_endpoint=oxigraph_service_graph.sparql_endpoint
-    )
+def test_sparqlwrapper_default_graph_uri(params, triplestore_with_data):
+    if (
+        isinstance(triplestore_with_data, FusekiEndpoints)
+        and params == default_graph_uri_params[0]
+    ):
+        reason = """The Fuseki store actually cannot implicitely access the default graph.
+
+        The secoresearch/fuseki image unfortunately sets the
+        tdb:unionDefaultGraph setting to true, which makes the union of
+        named graphs the default graph and excludes the actual default graph data.
+
+        See https://jena.apache.org/documentation/tdb/datasets.html (Dataset Query).
+        """
+        pytest.skip(reason=reason)
+
+    sparqlwrapper = SPARQLWrapper(sparql_endpoint=triplestore_with_data.sparql_endpoint)
     result = sparqlwrapper.query(
         query=params.query,
         convert=True,
@@ -91,4 +106,4 @@ def test_sparqlwrapper_default_graph_uri(params, oxigraph_service_graph):
         named_graph_uri=params.named_graph_uri,
     )
 
-    assert result == params.expected
+    assert sparql_result_set_equal(result, params.expected)

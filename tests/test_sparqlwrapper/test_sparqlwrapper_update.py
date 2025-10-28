@@ -5,8 +5,8 @@ from typing import NamedTuple
 import httpx
 import pytest
 from rdflib import URIRef
-from sparqlx import SPARQLWrapper
 
+from sparqlx import SPARQLWrapper
 from utils import acall
 
 
@@ -92,10 +92,10 @@ params = [
 @pytest.mark.parametrize("method", ["update", "aupdate"])
 @pytest.mark.parametrize("param", params)
 @pytest.mark.asyncio
-async def test_sparqlwrapper_update(method, param, oxigraph_service_graph):
+async def test_sparqlwrapper_update(method, param, oxigraph_service_with_data):
     sparqlwrapper = SPARQLWrapper(
-        sparql_endpoint=oxigraph_service_graph.sparql_endpoint,
-        update_endpoint=oxigraph_service_graph.update_endpoint,
+        sparql_endpoint=oxigraph_service_with_data.sparql_endpoint,
+        update_endpoint=oxigraph_service_with_data.update_endpoint,
     )
 
     with sparqlwrapper as wrapper:
@@ -157,3 +157,4 @@ def test_sparqlwrapper_updates(fuseki_service):
     ]
 
     assert all(_result in expected for _result in result)
+    assert all(_expected in result for _expected in expected)
