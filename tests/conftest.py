@@ -2,6 +2,7 @@
 
 from collections.abc import Iterator
 import time
+from typing import Protocol
 
 import httpx
 import pytest
@@ -10,16 +11,28 @@ from testcontainers.core.container import DockerContainer
 from testcontainers.core.waiting_utils import wait_for_logs
 
 
-class OxiGraphEndpoints:
+class _TriplestoreEndpoints(Protocol):
+    sparql_endpoint: str
+    update_endpoint: str
+    graphstore_endpoint: str
+
+    def __iter__(self) -> Iterator[str]:
+        yield from (
+            self.sparql_endpoint,
+            self.update_endpoint,
+            self.graphstore_endpoint,
+        )
+
+
+class OxiGraphEndpoints(_TriplestoreEndpoints):
+    """Data Container for Oxigraph SPARQL and Graphstore Endpoints."""
+
     def __init__(self, host, port):
         self._endpoint_base = f"http://{host}:{port}"
 
         self.sparql_endpoint = f"{self._endpoint_base}/query"
         self.update_endpoint = f"{self._endpoint_base}/update"
         self.graphstore_endpoint = f"{self._endpoint_base}/store"
-
-    def __iter__(self):
-        return iter((self.sparql_endpoint, self.graphstore_endpoint))
 
 
 def wait_for_service(url: str, timeout: int = 10) -> None:
@@ -39,6 +52,8 @@ def wait_for_service(url: str, timeout: int = 10) -> None:
 
 @pytest.fixture(scope="session")
 def oxigraph_service() -> Iterator[OxiGraphEndpoints]:
+    """Fixture that starts an Oxigraph Triplestore container and exposes an Endpoint object."""
+
     with DockerContainer("oxigraph/oxigraph").with_exposed_ports(7878) as container:
         host = container.get_container_host_ip()
         port = container.get_exposed_port(7878)
@@ -49,7 +64,9 @@ def oxigraph_service() -> Iterator[OxiGraphEndpoints]:
 
 
 @pytest.fixture(scope="function")
-def oxigraph_service_graph(oxigraph_service) -> Iterator[OxiGraphEndpoints]:
+def oxigraph_service_with_data(oxigraph_service) -> Iterator[OxiGraphEndpoints]:
+    """Dependent Fixture that ingests an RDF graph into a running Oxigraph container."""
+
     oxigraph_endpoints = oxigraph_service
 
     with httpx.Client() as client, open("tests/data/test_graphs.trig") as f:
@@ -67,11 +84,8 @@ def oxigraph_service_graph(oxigraph_service) -> Iterator[OxiGraphEndpoints]:
         )
 
 
-class FusekiEndpoints:
-    """Data Container for Fuseki SPARQL and Graphstore Endpoints.
-    Endpoints are computed given a host and port.
-    The class implements the Iterable protocol for unpacking.
-    """
+class FusekiEndpoints(_TriplestoreEndpoints):
+    """Data Container for Fuseki SPARQL and Graphstore Endpoints."""
 
     def __init__(self, host, port):
         self._endpoint_base = f"http://{host}:{port}/ds"
@@ -84,6 +98,7 @@ class FusekiEndpoints:
 @pytest.fixture(scope="session")
 def fuseki_service() -> Iterator[FusekiEndpoints]:
     """Fixture that starts a Fuseki Triplestore container and exposes an Endpoint object."""
+
     with (
         DockerContainer("secoresearch/fuseki")
         .with_exposed_ports(3030)
@@ -99,27 +114,33 @@ def fuseki_service() -> Iterator[FusekiEndpoints]:
         yield endpoints
 
 
-# @pytest.fixture(scope="function")
-# def fuseki_service_graph(fuseki_service) -> Iterator[FusekiEndpoints]:
-#     """Dependent Fixture that ingests an RDF graph into a running Fuseki container.
+@pytest.fixture(scope="function")
+def fuseki_service_with_data(fuseki_service) -> Iterator[FusekiEndpoints]:
+    """Dependent Fixture that ingests an RDF graph into a running Fuseki container.
 
-#     Note that, since `tdb:unionDefaultGraph` is set to `true` in the image,
-#     data ingest via the Graphstore Protocol has to target a named graph.
-#     See https://jena.apache.org/documentation/tdb/datasets.html (Section: Dataset Query).
-#     """
-#     _, graphstore_endpoint = fuseki_service
-#     auth = httpx.BasicAuth(username="admin", password="pw")
+    Note: For some reason, Fuseki does not accept DELETE to its GSP endpoint
+    for deleting all graphs in the store. However, DROP ALL works just fine.
+    """
+    auth = httpx.BasicAuth(username="admin", password="pw")
 
-#     with httpx.Client(auth=auth) as client, open("tests/data/test_graph.ttl") as f:
-#         response = client.put(
-#             url=f"{graphstore_endpoint}?graph=urn%3Agraph",
-#             content=f.read(),
-#             headers={"Content-Type": "text/turtle"},
-#         )
-#         response.raise_for_status()
+    with httpx.Client(auth=auth) as client, open("tests/data/test_graphs.trig") as f:
+        response = client.put(
+            url=fuseki_service.graphstore_endpoint,
+            content=f.read(),
+            headers={"Content-Type": "application/trig"},
+        )
+        response.raise_for_status()
 
-#         yield fuseki_service
+        yield fuseki_service
 
-#         client.delete(
-#             url=f"{graphstore_endpoint}?graph=urn%3Agraph",
-#         )
+        client.post(url=fuseki_service.update_endpoint, data={"update": "drop all"})
+
+
+@pytest.fixture(params=["oxigraph_service", "fuseki_service"])
+def triplestore(request) -> _TriplestoreEndpoints:
+    return request.getfixturevalue(request.param)
+
+
+@pytest.fixture(params=["oxigraph_service_with_data", "fuseki_service_with_data"])
+def triplestore_with_data(request) -> _TriplestoreEndpoints:
+    return request.getfixturevalue(request.param)
