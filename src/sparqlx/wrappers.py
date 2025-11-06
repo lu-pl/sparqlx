@@ -1,30 +1,25 @@
-"""SPARQL query and update operation classes implementing the SPARQL 1.1 Protocol."""
+"""SPARQLWrapper: An httpx-based SPARQL 1.2 Protocol client."""
 
 import asyncio
 from collections.abc import AsyncIterator, Callable, Iterator
-from contextlib import (
-    AbstractAsyncContextManager,
-    AbstractContextManager,
-    asynccontextmanager,
-    contextmanager,
-)
+from contextlib import AbstractAsyncContextManager, AbstractContextManager
 import functools
-from typing import Literal as TLiteral, Self, overload
-import warnings
+from typing import Self
 
 import httpx
 from rdflib import Graph
-from sparqlx.utils.logging_hooks import (
-    alog_request,
-    alog_response,
-    log_request,
-    log_response,
-)
+from sparqlx.utils.client_manager import ClientManager
 from sparqlx.utils.types import _TRequestDataValue, _TResponseFormat, _TSPARQLBinding
 from sparqlx.utils.utils import QueryOperationParameters, UpdateOperationParameters
 
 
-class _SPARQLOperationWrapper(AbstractContextManager, AbstractAsyncContextManager):
+class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
+    """SPARQLWrapper: An httpx-based SPARQL 1.2 Protocol client.
+
+    The class provides functionality for running SPARQL Query and Update Operations
+    according to the SPARQL 1.2 protocol and supports both sync and async interfaces.
+    """
+
     def __init__(
         self,
         sparql_endpoint: str | None = None,
@@ -37,116 +32,26 @@ class _SPARQLOperationWrapper(AbstractContextManager, AbstractAsyncContextManage
         self.sparql_endpoint = sparql_endpoint
         self.update_endpoint = update_endpoint
 
-        self.client: httpx.Client | None = client
-        self._client_config: dict = client_config or {}
-
-        self.aclient: httpx.AsyncClient | None = aclient
-        self._aclient_config: dict = aclient_config or {}
-
-        self._manage_client: bool = client is None
-        self._manage_aclient: bool = aclient is None
-
-    @property
-    def _client(self) -> httpx.Client:
-        client = (
-            httpx.Client(**self._client_config) if self._manage_client else self.client
+        self._client_manager = ClientManager(
+            client=client,
+            client_config=client_config,
+            aclient=aclient,
+            aclient_config=aclient_config,
         )
-        assert isinstance(client, httpx.Client)  # type narrow
-
-        client.event_hooks["request"].append(log_request)
-        client.event_hooks["response"].append(log_response)
-
-        return client
-
-    @property
-    def _aclient(self) -> httpx.AsyncClient:
-        aclient = (
-            httpx.AsyncClient(**self._aclient_config)
-            if self._manage_aclient
-            else self.aclient
-        )
-        assert isinstance(aclient, httpx.AsyncClient)  # type narrow
-
-        aclient.event_hooks["request"].append(alog_request)
-        aclient.event_hooks["response"].append(alog_response)
-
-        return aclient
-
-    @contextmanager
-    def _managed_client(self) -> Iterator[httpx.Client]:
-        client = self._client
-        yield client
-
-        if self._manage_client:
-            client.close()
-            return
-        self._open_client_warning(client)
-
-    @asynccontextmanager
-    async def _managed_aclient(self) -> AsyncIterator[httpx.AsyncClient]:
-        aclient = self._aclient
-        yield aclient
-
-        if self._manage_aclient:
-            await aclient.aclose()
-            return
-        self._open_client_warning(aclient)
-
-    @staticmethod
-    def _open_client_warning(client: httpx.Client | httpx.AsyncClient) -> None:
-        msg = (
-            f"httpx Client instance '{client}' is not managed. "
-            "Client.close/AsyncClient.aclose should be called at some point."
-        )
-        warnings.warn(msg, stacklevel=2)
 
     def __enter__(self) -> Self:
-        self.client = self._client
-        self._manage_client = False
+        self._client_manager._client = self._client_manager.client
         return self
 
     def __exit__(self, exc_type, exc_value, traceback) -> None:
-        assert isinstance(self.client, httpx.Client)  # type narrow
-        self.client.close()
+        self._client_manager.client.close()
 
     async def __aenter__(self) -> Self:
-        self.aclient = self._aclient
-        self._manage_aclient = False
+        self._client_manager._aclient = self._client_manager.aclient
         return self
 
     async def __aexit__(self, exc_type, exc_value, traceback) -> None:
-        assert isinstance(self.aclient, httpx.AsyncClient)  # type narrow
-        await self.aclient.aclose()
-
-
-class SPARQLWrapper(_SPARQLOperationWrapper):
-    """SPARQLWrapper: An httpx-based SPARQL client.
-
-    The class provides functionality for running SPARQL Query and Update Operations
-    according to the SPARQL 1.2 protocol and supports both sync and async interfaces.
-    """
-
-    @overload
-    def query(
-        self,
-        query: str,
-        convert: TLiteral[True],
-        response_format: _TResponseFormat | str | None = None,
-        version: str | None = None,
-        default_graph_uri: _TRequestDataValue = None,
-        named_graph_uri: _TRequestDataValue = None,
-    ) -> list[_TSPARQLBinding] | Graph | bool: ...
-
-    @overload
-    def query(
-        self,
-        query: str,
-        convert: TLiteral[False] = False,
-        response_format: _TResponseFormat | str | None = None,
-        version: str | None = None,
-        default_graph_uri: _TRequestDataValue = None,
-        named_graph_uri: _TRequestDataValue = None,
-    ) -> httpx.Response: ...
+        await self._client_manager.aclient.aclose()
 
     def query(
         self,
@@ -166,7 +71,7 @@ class SPARQLWrapper(_SPARQLOperationWrapper):
             named_graph_uri=named_graph_uri,
         )
 
-        with self._managed_client() as client:
+        with self._client_manager.context() as client:
             response = client.post(
                 url=self.sparql_endpoint,  # type: ignore
                 data=params.data,
@@ -178,28 +83,6 @@ class SPARQLWrapper(_SPARQLOperationWrapper):
             return params.converter(response=response)
         return response
 
-    @overload
-    async def aquery(
-        self,
-        query: str,
-        convert: TLiteral[True],
-        response_format: _TResponseFormat | str | None = None,
-        version: str | None = None,
-        default_graph_uri: _TRequestDataValue = None,
-        named_graph_uri: _TRequestDataValue = None,
-    ) -> list[_TSPARQLBinding] | Graph | bool: ...
-
-    @overload
-    async def aquery(
-        self,
-        query: str,
-        convert: TLiteral[False] = False,
-        response_format: _TResponseFormat | str | None = None,
-        version: str | None = None,
-        default_graph_uri: _TRequestDataValue = None,
-        named_graph_uri: _TRequestDataValue = None,
-    ) -> httpx.Response: ...
-
     async def aquery(
         self,
         query: str,
@@ -218,7 +101,7 @@ class SPARQLWrapper(_SPARQLOperationWrapper):
             named_graph_uri=named_graph_uri,
         )
 
-        async with self._managed_aclient() as aclient:
+        async with self._client_manager.acontext() as aclient:
             response = await aclient.post(
                 url=self.sparql_endpoint,  # type: ignore
                 data=params.data,
@@ -256,7 +139,7 @@ class SPARQLWrapper(_SPARQLOperationWrapper):
             else functools.partial(streaming_method, chunk_size=chunk_size)  # type: ignore
         )
 
-        with self._managed_client() as client:
+        with self._client_manager.context() as client:
             with client.stream(
                 "POST",
                 url=self.sparql_endpoint,  # type: ignore
@@ -294,7 +177,7 @@ class SPARQLWrapper(_SPARQLOperationWrapper):
             else functools.partial(streaming_method, chunk_size=chunk_size)  # type: ignore
         )
 
-        async with self._managed_aclient() as aclient:
+        async with self._client_manager.acontext() as aclient:
             async with aclient.stream(
                 "POST",
                 url=self.sparql_endpoint,  # type: ignore
@@ -306,28 +189,6 @@ class SPARQLWrapper(_SPARQLOperationWrapper):
                 async for chunk in _streaming_method(response):
                     yield chunk
 
-    @overload
-    def queries(
-        self,
-        *queries: str,
-        convert: TLiteral[True],
-        response_format: _TResponseFormat | str | None = None,
-        version: str | None = None,
-        default_graph_uri: _TRequestDataValue = None,
-        named_graph_uri: _TRequestDataValue = None,
-    ) -> Iterator[list[_TSPARQLBinding] | Graph | bool]: ...
-
-    @overload
-    def queries(
-        self,
-        *queries: str,
-        convert: TLiteral[False] = False,
-        response_format: _TResponseFormat | str | None = None,
-        version: str | None = None,
-        default_graph_uri: _TRequestDataValue = None,
-        named_graph_uri: _TRequestDataValue = None,
-    ) -> Iterator[httpx.Response]: ...
-
     def queries(
         self,
         *queries: str,
@@ -338,7 +199,7 @@ class SPARQLWrapper(_SPARQLOperationWrapper):
         named_graph_uri: _TRequestDataValue = None,
     ) -> Iterator[httpx.Response | list[_TSPARQLBinding] | Graph | bool]:
         query_component = SPARQLWrapper(
-            sparql_endpoint=self.sparql_endpoint, aclient=self._aclient
+            sparql_endpoint=self.sparql_endpoint, aclient=self._client_manager.aclient
         )
 
         async def _runner() -> Iterator[httpx.Response]:
@@ -376,7 +237,7 @@ class SPARQLWrapper(_SPARQLOperationWrapper):
             using_named_graph_uri=using_named_graph_uri,
         )
 
-        with self._managed_client() as client:
+        with self._client_manager.context() as client:
             response = client.post(
                 url=self.update_endpoint,  # type: ignore
                 data=params.data,
@@ -399,7 +260,7 @@ class SPARQLWrapper(_SPARQLOperationWrapper):
             using_named_graph_uri=using_named_graph_uri,
         )
 
-        async with self._managed_aclient() as aclient:
+        async with self._client_manager.acontext() as aclient:
             response = await aclient.post(
                 url=self.update_endpoint,  # type: ignore
                 data=params.data,
@@ -416,7 +277,7 @@ class SPARQLWrapper(_SPARQLOperationWrapper):
         using_named_graph_uri: _TRequestDataValue = None,
     ) -> Iterator[httpx.Response]:
         update_component = SPARQLWrapper(
-            update_endpoint=self.update_endpoint, aclient=self._aclient
+            update_endpoint=self.update_endpoint, aclient=self._client_manager.aclient
         )
 
         async def _runner() -> Iterator[httpx.Response]:
