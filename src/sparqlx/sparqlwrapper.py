@@ -4,7 +4,7 @@ import asyncio
 from collections.abc import AsyncIterator, Callable, Iterator
 from contextlib import AbstractAsyncContextManager, AbstractContextManager
 import functools
-from typing import Literal as TLiteral, Self, overload
+from typing import Self
 
 import httpx
 from rdflib import Graph
@@ -53,28 +53,6 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
     async def __aexit__(self, exc_type, exc_value, traceback) -> None:
         await self._client_manager.aclient.aclose()
 
-    @overload
-    def query(
-        self,
-        query: str,
-        convert: TLiteral[True],
-        response_format: _TResponseFormat | str | None = None,
-        version: str | None = None,
-        default_graph_uri: _TRequestDataValue = None,
-        named_graph_uri: _TRequestDataValue = None,
-    ) -> list[_TSPARQLBinding] | Graph | bool: ...
-
-    @overload
-    def query(
-        self,
-        query: str,
-        convert: TLiteral[False] = False,
-        response_format: _TResponseFormat | str | None = None,
-        version: str | None = None,
-        default_graph_uri: _TRequestDataValue = None,
-        named_graph_uri: _TRequestDataValue = None,
-    ) -> httpx.Response: ...
-
     def query(
         self,
         query: str,
@@ -104,28 +82,6 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         if convert:
             return params.converter(response=response)
         return response
-
-    @overload
-    async def aquery(
-        self,
-        query: str,
-        convert: TLiteral[True],
-        response_format: _TResponseFormat | str | None = None,
-        version: str | None = None,
-        default_graph_uri: _TRequestDataValue = None,
-        named_graph_uri: _TRequestDataValue = None,
-    ) -> list[_TSPARQLBinding] | Graph | bool: ...
-
-    @overload
-    async def aquery(
-        self,
-        query: str,
-        convert: TLiteral[False] = False,
-        response_format: _TResponseFormat | str | None = None,
-        version: str | None = None,
-        default_graph_uri: _TRequestDataValue = None,
-        named_graph_uri: _TRequestDataValue = None,
-    ) -> httpx.Response: ...
 
     async def aquery(
         self,
@@ -232,28 +188,6 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
 
                 async for chunk in _streaming_method(response):
                     yield chunk
-
-    @overload
-    def queries(
-        self,
-        *queries: str,
-        convert: TLiteral[True],
-        response_format: _TResponseFormat | str | None = None,
-        version: str | None = None,
-        default_graph_uri: _TRequestDataValue = None,
-        named_graph_uri: _TRequestDataValue = None,
-    ) -> Iterator[list[_TSPARQLBinding] | Graph | bool]: ...
-
-    @overload
-    def queries(
-        self,
-        *queries: str,
-        convert: TLiteral[False] = False,
-        response_format: _TResponseFormat | str | None = None,
-        version: str | None = None,
-        default_graph_uri: _TRequestDataValue = None,
-        named_graph_uri: _TRequestDataValue = None,
-    ) -> Iterator[httpx.Response]: ...
 
     def queries(
         self,
