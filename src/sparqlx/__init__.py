@@ -1,3 +1,4 @@
+from sparqlx.sparqlwrapper import SPARQLWrapper
 from sparqlx.utils.types import (
     _TBindingsResponseFormat,
     _TGraphResponseFormat,
@@ -5,4 +6,3 @@ from sparqlx.utils.types import (
     _TSPARQLBinding,
     _TSPARQLBindingValue,
 )
-from sparqlx.wrappers import SPARQLWrapper
