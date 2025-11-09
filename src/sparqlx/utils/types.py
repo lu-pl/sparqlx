@@ -59,3 +59,18 @@ _TSPARQLBinding = dict[str, _TSPARQLBindingValue]
 _TBindingsResponseFormat = PyLiteral["json", "xml", "csv", "tsv"]
 _TGraphResponseFormat = PyLiteral["turtle", "xml", "ntriples", "json-ld"]
 _TResponseFormat = _TBindingsResponseFormat | _TGraphResponseFormat
+
+
+class SelectQuery(str): ...
+
+
+class AskQuery(str): ...
+
+
+class ConstructQuery(str): ...
+
+
+class DescribeQuery(str): ...
+
+
+type _TQuery = str | SelectQuery | AskQuery | ConstructQuery | DescribeQuery

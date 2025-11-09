@@ -9,7 +9,16 @@ from typing import Literal as TLiteral, Self, overload
 import httpx
 from rdflib import Graph
 from sparqlx.utils.client_manager import ClientManager
-from sparqlx.utils.types import _TRequestDataValue, _TResponseFormat, _TSPARQLBinding
+from sparqlx.utils.types import (
+    AskQuery,
+    ConstructQuery,
+    DescribeQuery,
+    SelectQuery,
+    _TQuery,
+    _TRequestDataValue,
+    _TResponseFormat,
+    _TSPARQLBinding,
+)
 from sparqlx.utils.utils import QueryOperationParameters, UpdateOperationParameters
 
 
@@ -56,7 +65,40 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
     @overload
     def query(
         self,
-        query: str,
+        query: SelectQuery,
+        convert: TLiteral[True],
+        response_format: _TResponseFormat | str | None = None,
+        version: str | None = None,
+        default_graph_uri: _TRequestDataValue = None,
+        named_graph_uri: _TRequestDataValue = None,
+    ) -> list[_TSPARQLBinding]: ...
+
+    @overload
+    def query(
+        self,
+        query: AskQuery,
+        convert: TLiteral[True],
+        response_format: _TResponseFormat | str | None = None,
+        version: str | None = None,
+        default_graph_uri: _TRequestDataValue = None,
+        named_graph_uri: _TRequestDataValue = None,
+    ) -> bool: ...
+
+    @overload
+    def query(
+        self,
+        query: ConstructQuery | DescribeQuery,
+        convert: TLiteral[True],
+        response_format: _TResponseFormat | str | None = None,
+        version: str | None = None,
+        default_graph_uri: _TRequestDataValue = None,
+        named_graph_uri: _TRequestDataValue = None,
+    ) -> Graph: ...
+
+    @overload
+    def query(
+        self,
+        query: _TQuery,
         convert: TLiteral[True],
         response_format: _TResponseFormat | str | None = None,
         version: str | None = None,
@@ -67,7 +109,7 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
     @overload
     def query(
         self,
-        query: str,
+        query: _TQuery,
         convert: TLiteral[False] = False,
         response_format: _TResponseFormat | str | None = None,
         version: str | None = None,
@@ -77,7 +119,7 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
 
     def query(
         self,
-        query: str,
+        query: _TQuery,
         convert: bool = False,
         response_format: _TResponseFormat | str | None = None,
         version: str | None = None,
@@ -108,7 +150,40 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
     @overload
     async def aquery(
         self,
-        query: str,
+        query: SelectQuery,
+        convert: TLiteral[True],
+        response_format: _TResponseFormat | str | None = None,
+        version: str | None = None,
+        default_graph_uri: _TRequestDataValue = None,
+        named_graph_uri: _TRequestDataValue = None,
+    ) -> list[_TSPARQLBinding]: ...
+
+    @overload
+    async def aquery(
+        self,
+        query: AskQuery,
+        convert: TLiteral[True],
+        response_format: _TResponseFormat | str | None = None,
+        version: str | None = None,
+        default_graph_uri: _TRequestDataValue = None,
+        named_graph_uri: _TRequestDataValue = None,
+    ) -> bool: ...
+
+    @overload
+    async def aquery(
+        self,
+        query: ConstructQuery | DescribeQuery,
+        convert: TLiteral[True],
+        response_format: _TResponseFormat | str | None = None,
+        version: str | None = None,
+        default_graph_uri: _TRequestDataValue = None,
+        named_graph_uri: _TRequestDataValue = None,
+    ) -> Graph: ...
+
+    @overload
+    async def aquery(
+        self,
+        query: _TQuery,
         convert: TLiteral[True],
         response_format: _TResponseFormat | str | None = None,
         version: str | None = None,
@@ -119,7 +194,7 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
     @overload
     async def aquery(
         self,
-        query: str,
+        query: _TQuery,
         convert: TLiteral[False] = False,
         response_format: _TResponseFormat | str | None = None,
         version: str | None = None,
@@ -129,7 +204,7 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
 
     async def aquery(
         self,
-        query: str,
+        query: _TQuery,
         convert: bool = False,
         response_format: _TResponseFormat | str | None = None,
         version: str | None = None,
@@ -159,7 +234,7 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
 
     def query_stream[T](
         self,
-        query: str,
+        query: _TQuery,
         response_format: _TResponseFormat | str | None = None,
         version: str | None = None,
         default_graph_uri: _TRequestDataValue = None,
@@ -197,7 +272,7 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
 
     async def aquery_stream[T](
         self,
-        query: str,
+        query: _TQuery,
         response_format: _TResponseFormat | str | None = None,
         version: str | None = None,
         default_graph_uri: _TRequestDataValue = None,
@@ -236,7 +311,7 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
     @overload
     def queries(
         self,
-        *queries: str,
+        *queries: _TQuery,
         convert: TLiteral[True],
         response_format: _TResponseFormat | str | None = None,
         version: str | None = None,
@@ -247,7 +322,7 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
     @overload
     def queries(
         self,
-        *queries: str,
+        *queries: _TQuery,
         convert: TLiteral[False] = False,
         response_format: _TResponseFormat | str | None = None,
         version: str | None = None,
@@ -257,7 +332,7 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
 
     def queries(
         self,
-        *queries: str,
+        *queries: _TQuery,
         convert: bool = False,
         response_format: _TResponseFormat | str | None = None,
         version: str | None = None,
