@@ -64,6 +64,37 @@ If the `convert` parameter is set to `True`, `SPARQLWrapper.query` returns
 
 Note that only JSON is supported as a response format for `convert=True` on `SELECT` and `ASK` query results.
 
+#### Converted Result Typing
+
+The return type for calls to `SPARQLWrapper.query` with `convert=True` is a union type `list[sparqlx._TSPARQLBinding] | bool | rdflib.Graph` - the actual runtime return type depends on the query type (`SELECT`, `ASK`, `CONSTRUCT` or `DESCRIBE`).
+
+Since the query type is not known at static time, type checkers are not able to narrow the union type without explicit annotation.
+
+`sparqlx` defines `typing.overloads` for the simple `str` subclasses
+- `sparqlx.SelectQuery`,
+- `sparqlx.AskQery`,
+- `sparqlx.ConstructQuery` and
+- `sparqlx.DescribeQuery`
+
+which can be used to inform static checkers about the type of query and ergo allow static analysis to narrow the return type.
+
+```python
+from typing import reveal_type
+from sparqlx import ConstructQuery, SPARQLWrapper
+
+
+sparqlwrapper = SPARQLWrapper(sparql_endpoint=wikidata_sparql_endpoint)
+query = "construct {?s ?p ?p} where {?s ?p ?o} limit 10"
+
+result_1 = sparqlwrapper.query(query, convert=True)
+result_2 = sparqlwrapper.query(ConstructQuery(query), convert=True)
+
+reveal_type(result_1)  # list[_SPARQLBinding] | bool | rdflib.Graph
+reveal_type(result_2)  # rdflib.Graph
+```
+
+> Note that fully typing `SPARQLWrapper.queries` is currently not possible since Python does not support variadic type mappings.
+
 
 #### Client Sharing and Configuration
 
