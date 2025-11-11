@@ -1,0 +1,85 @@
+- case: test_select_query_type_narrow
+  mypy_config: |
+    [mypy]
+    follow_imports = silent
+  main: |
+    from typing import assert_type
+    from sparqlx import SPARQLWrapper, SelectQuery
+    from sparqlx.utils.types import _TSPARQLBinding
+    from rdflib import Graph
+
+    sparql_endpoint = "https://query.wikidata.org/bigdata/namespace/wdq/sparql"
+    sparqlwrapper = SPARQLWrapper(sparql_endpoint=sparql_endpoint)
+
+    query = "select ?s ?p ?o where {?s ?p ?o} limit 10"
+
+    result1 = sparqlwrapper.query(query, convert=True)
+    result2 = sparqlwrapper.query(SelectQuery(query), convert=True)
+
+    assert_type(result1, list[_TSPARQLBinding] | bool | Graph) | Graph | bool
+    assert_type(result2, list[_TSPARQLBinding])
+
+
+- case: test_ask_query_type_narrow
+  mypy_config: |
+    [mypy]
+    follow_imports = silent
+  main: |
+    from typing import assert_type
+    from sparqlx import SPARQLWrapper, AskQuery
+    from sparqlx.utils.types import _TSPARQLBinding
+    from rdflib import Graph
+
+    sparql_endpoint = "https://query.wikidata.org/bigdata/namespace/wdq/sparql"
+    sparqlwrapper = SPARQLWrapper(sparql_endpoint=sparql_endpoint)
+
+    query = "ask where {?s ?p ?o} limit 10"
+    result1 = sparqlwrapper.query(query, convert=True)
+    result2 = sparqlwrapper.query(AskQuery(query), convert=True)
+
+    assert_type(result1, list[_TSPARQLBinding] | bool | Graph) | Graph | bool
+    assert_type(result2, bool)
+
+
+- case: test_construct_query_type_narrow
+  mypy_config: |
+    [mypy]
+    follow_imports = silent
+  main: |
+    from typing import assert_type
+    from sparqlx import SPARQLWrapper, ConstructQuery
+    from sparqlx.utils.types import _TSPARQLBinding
+    from rdflib import Graph
+
+    sparql_endpoint = "https://query.wikidata.org/bigdata/namespace/wdq/sparql"
+    sparqlwrapper = SPARQLWrapper(sparql_endpoint=sparql_endpoint)
+
+    query = "construct {?s ?p ?o} where {?s ?p ?o} limit 10"
+
+    result1 = sparqlwrapper.query(query, convert=True)
+    result2 = sparqlwrapper.query(ConstructQuery(query), convert=True)
+
+    assert_type(result1, list[_TSPARQLBinding] | bool | Graph) | Graph | bool
+    assert_type(result2, Graph)
+
+
+- case: test_describe_query_type_narrow
+  mypy_config: |
+    [mypy]
+    follow_imports = silent
+  main: |
+    from typing import assert_type
+    from sparqlx import SPARQLWrapper, DescribeQuery
+    from sparqlx.utils.types import _TSPARQLBinding
+    from rdflib import Graph
+
+    sparql_endpoint = "https://query.wikidata.org/bigdata/namespace/wdq/sparql"
+    sparqlwrapper = SPARQLWrapper(sparql_endpoint=sparql_endpoint)
+
+    query = "describe ?s ?p ?o where {?s ?p ?o} limit 10"
+
+    result1 = sparqlwrapper.query(query, convert=True)
+    result2 = sparqlwrapper.query(DescribeQuery(query), convert=True)
+
+    assert_type(result1, list[_TSPARQLBinding] | bool | Graph) | Graph | bool
+    assert_type(result2, Graph)
