@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.4.0](https://github.com/lu-pl/sparqlx/compare/v0.3.0...v0.4.0) (2025-11-12)
+
+
+### Features
+
+* add event-based logging ([04fe325](https://github.com/lu-pl/sparqlx/commit/04fe3256176f7d319ba1bfce7b1edc72d5af98c8))
+* check for missing headers.content-type in _convert_graph ([3e845db](https://github.com/lu-pl/sparqlx/commit/3e845db5cd0918c2387b555a507aa20fc68a4e34))
+* introduce _TRequestDataValue for httpx data mappings ([11ea18f](https://github.com/lu-pl/sparqlx/commit/11ea18f79d7c9e816870af8e59c9892dd1866923))
+* set header content-type to "application/x-www-form-urlencoded" ([b446944](https://github.com/lu-pl/sparqlx/commit/b44694426d6b6248019808195b76284bf163e610))
+* **types:** introduce Query types for enhanced static return types ([2cf6710](https://github.com/lu-pl/sparqlx/commit/2cf67104e34c022c50fa1d9e6813f5587ff2c611))
+
+
+### Bug Fixes
+
+* Use application/rdf+xml as Graph response type for XML ([6453dd3](https://github.com/lu-pl/sparqlx/commit/6453dd35be2c47f93652972a1057f0d2303163ab))
+
+
+### Documentation
+
+* add recipes section and streaming recipes to readme ([4658ad7](https://github.com/lu-pl/sparqlx/commit/4658ad793c6283c342e2207a8dd677d8ffb953d0))
+* add section on converted result type narrowing to the README ([17bc5b5](https://github.com/lu-pl/sparqlx/commit/17bc5b5134c3b1fd58f824e866b9d10032dcc189))
+* align `sparqlx` references in docs ([0cecb08](https://github.com/lu-pl/sparqlx/commit/0cecb08a38530b83e1a04c6535963a9b09db4038))
+* correct minor typo in JSON streaming recipe ([98fd0c2](https://github.com/lu-pl/sparqlx/commit/98fd0c23d236db234a142181dc040bec0fc9aaa0))
+* minor doc cleanup ([c7434cf](https://github.com/lu-pl/sparqlx/commit/c7434cffa6b687297e0cc37c87d63074820b7906))
+
 ## [0.3.0](https://github.com/lu-pl/sparqlx/compare/v0.2.0...v0.3.0) (2025-09-14)
 
 
