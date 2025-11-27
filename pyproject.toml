@@ -6,7 +6,7 @@ readme = "README.md"
 authors = [
     { name = "Lukas Plank", email = "lupl@tuta.io" }
 ]
-requires-python = ">=3.13"
+requires-python = ">=3.12"
 dependencies = [
     "httpx>=0.28.1",
     "rdflib>=7.3.0",
