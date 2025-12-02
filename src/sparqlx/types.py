@@ -2,7 +2,7 @@
 
 import datetime
 import decimal
-from typing import Literal as PyLiteral, TypeAlias
+from typing import Literal as PyLiteral
 from xml.dom.minidom import Document
 
 from rdflib import BNode, Literal, URIRef
@@ -10,14 +10,14 @@ from rdflib.compat import long_type
 from rdflib.xsd_datetime import Duration
 
 
-type _TRequestDataValue = str | list[str] | tuple[str, ...] | None
+type RequestDataValue = str | list[str] | tuple[str, ...] | None
 """Value type for httpx.RequestValue type.
 
 See the httpx URL encoding function:
 https://github.com/encode/httpx/blob/4b23574cf83307ce27d3b14b4a425dc58c57d28d/httpx/_content.py#L136
 """
 
-_TLiteralToPython: TypeAlias = (
+type LiteralToPython = (
     Literal
     | None
     | datetime.date
@@ -51,14 +51,14 @@ Return type provenance:
 """
 
 
-_TSPARQLBindingValue: TypeAlias = URIRef | BNode | _TLiteralToPython
+type SPARQLBindingValue = URIRef | BNode | LiteralToPython
 "Return type for SPARQLWrapper result mapping values."
 
-_TSPARQLBinding = dict[str, _TSPARQLBindingValue]
+type SPARQLBinding = dict[str, SPARQLBindingValue]
 
-_TBindingsResponseFormat = PyLiteral["json", "xml", "csv", "tsv"]
-_TGraphResponseFormat = PyLiteral["turtle", "xml", "ntriples", "json-ld"]
-_TResponseFormat = _TBindingsResponseFormat | _TGraphResponseFormat
+type BindingsResponseFormat = PyLiteral["json", "xml", "csv", "tsv"]
+type GraphResponseFormat = PyLiteral["turtle", "xml", "ntriples", "json-ld"]
+type ResponseFormat = BindingsResponseFormat | GraphResponseFormat
 
 
 class SelectQuery(str): ...
@@ -73,4 +73,4 @@ class ConstructQuery(str): ...
 class DescribeQuery(str): ...
 
 
-type _TQuery = str | SelectQuery | AskQuery | ConstructQuery | DescribeQuery
+type Query = str | SelectQuery | AskQuery | ConstructQuery | DescribeQuery
