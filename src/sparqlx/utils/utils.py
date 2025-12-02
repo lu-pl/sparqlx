@@ -5,6 +5,22 @@ from sparqlx.utils.converters import _convert_ask, _convert_bindings, _convert_g
 from sparqlx.utils.types import _TRequestDataValue, _TResponseFormat
 
 
+def _build_request_data(
+    **kwargs: _TRequestDataValue,
+) -> dict[str, _TRequestDataValue]:
+    """
+    Build SPARQL protocol request data.
+
+    - Drop None values
+    - Convert snake_case keys to dash-case as required by SPARQL protocol
+      e.g. default_graph_uri -> default-graph-uri
+    """
+    return {k.replace("_", "-"): v for k, v in kwargs.items() if v is not None}
+
+
+type _TRequestDataMap = dict[str, _TRequestDataValue]
+
+
 class MimeTypeMap(UserDict):
     def __missing__(self, key):
         return key
@@ -28,11 +44,6 @@ graph_format_map = MimeTypeMap(
 )
 
 
-class SPARQLOperationDataMap(UserDict):
-    def __init__(self, **kwargs):
-        self.data = {k.replace("_", "-"): v for k, v in kwargs.items() if v is not None}
-
-
 class QueryOperationParameters:
     def __init__(
         self,
@@ -48,7 +59,7 @@ class QueryOperationParameters:
         self._query_type = prepareQuery(query).algebra.name
         self._response_format = response_format
 
-        self.data: SPARQLOperationDataMap = SPARQLOperationDataMap(
+        self.data: _TRequestDataMap = _build_request_data(
             query=query,
             version=version,
             default_graph_uri=default_graph_uri,
@@ -102,7 +113,7 @@ class UpdateOperationParameters:
         using_graph_uri: _TRequestDataValue = None,
         using_named_graph_uri: _TRequestDataValue = None,
     ):
-        self.data: SPARQLOperationDataMap = SPARQLOperationDataMap(
+        self.data: _TRequestDataMap = _build_request_data(
             update=update_request,
             version=version,
             using_graph_uri=using_graph_uri,
