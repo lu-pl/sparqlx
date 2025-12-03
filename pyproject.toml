@@ -1,16 +1,37 @@
 [project]
 name = "sparqlx"
 version = "0.5.0"
-description = "Add your description here"
+requires-python = ">=3.12"
+description = "Python library for httpx-based SPARQL Query and Update Operations according to the SPARQL 1.2 Protocol"
 readme = "README.md"
+license = { file = "LICENSE" }
 authors = [
     { name = "Lukas Plank", email = "lupl@tuta.io" }
 ]
-requires-python = ">=3.12"
+maintainers = [
+    { name = "Lukas Plank", email = "lupl@tuta.io" }
+]
+keywords = [
+    "SPARQL",
+    "RDF",
+]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+]
+
 dependencies = [
     "httpx>=0.28.1",
     "rdflib>=7.3.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/lu-pl/sparqlx"
+Documentation = "https://github.com/lu-pl/sparqlx"
+Source = "https://github.com/lu-pl/sparqlx"
+History = "https://github.com/lu-pl/sparqlx/releases"
+Tracker = "https://github.com/lu-pl/sparqlx/issues"
 
 [build-system]
 requires = ["hatchling"]
