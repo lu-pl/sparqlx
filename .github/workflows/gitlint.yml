@@ -1,0 +1,13 @@
+name: gitlint
+
+on:
+  pull_request: {}
+  push: {}
+
+jobs:
+  gitlint:
+    runs-on: ubuntu-latest
+    name: GitLint
+    steps:
+      - name: Lint commits, branches, and pull requests
+        uses: aschbacd/gitlint-action@v1.2.0
