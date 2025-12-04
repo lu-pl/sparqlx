@@ -16,7 +16,7 @@
     result1 = sparqlwrapper.query(query, convert=True)
     result2 = sparqlwrapper.query(SelectQuery(query), convert=True)
 
-    assert_type(result1, list[_TSPARQLBinding] | bool | Graph) | Graph | bool
+    assert_type(result1, list[_TSPARQLBinding] | bool | Graph)
     assert_type(result2, list[_TSPARQLBinding])
 
 
@@ -37,7 +37,7 @@
     result1 = sparqlwrapper.query(query, convert=True)
     result2 = sparqlwrapper.query(AskQuery(query), convert=True)
 
-    assert_type(result1, list[_TSPARQLBinding] | bool | Graph) | Graph | bool
+    assert_type(result1, list[_TSPARQLBinding] | bool | Graph)
     assert_type(result2, bool)
 
 
@@ -59,7 +59,7 @@
     result1 = sparqlwrapper.query(query, convert=True)
     result2 = sparqlwrapper.query(ConstructQuery(query), convert=True)
 
-    assert_type(result1, list[_TSPARQLBinding] | bool | Graph) | Graph | bool
+    assert_type(result1, list[_TSPARQLBinding] | bool | Graph)
     assert_type(result2, Graph)
 
 
@@ -81,5 +81,5 @@
     result1 = sparqlwrapper.query(query, convert=True)
     result2 = sparqlwrapper.query(DescribeQuery(query), convert=True)
 
-    assert_type(result1, list[_TSPARQLBinding] | bool | Graph) | Graph | bool
+    assert_type(result1, list[_TSPARQLBinding] | bool | Graph)
     assert_type(result2, Graph)
