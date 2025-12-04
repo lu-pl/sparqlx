@@ -1,7 +1,9 @@
 """Pytest entry point for SPARQLWrapper httpx client sharing."""
 
 import httpx
+import pytest
 from sparqlx import SPARQLWrapper
+from sparqlx.utils.client_manager import ClientManager
 
 
 def test_client_identity():
@@ -114,3 +116,26 @@ def test_shared_context_client():
         _client.is_closed
         for _client in [client, context_client, context_client_property]
     )
+
+
+def test_client_manager_context_closes_on_exception():
+    """Managed sync client is closed even if context body raises."""
+    manager = ClientManager()
+
+    with pytest.raises(RuntimeError):
+        with manager.context() as client:
+            raise RuntimeError("boom")
+
+    assert client.is_closed
+
+
+@pytest.mark.asyncio
+async def test_client_manager_acontext_closes_on_exception():
+    """Managed async client is closed even if context body raises."""
+    manager = ClientManager()
+
+    with pytest.raises(RuntimeError):
+        async with manager.acontext() as aclient:
+            raise RuntimeError("boom")
+
+    assert aclient.is_closed
