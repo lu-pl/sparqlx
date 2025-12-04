@@ -70,4 +70,16 @@ def _convert_graph(response: httpx.Response) -> Graph:
 
 
 def _convert_ask(response: httpx.Response) -> bool:
-    return response.json()["boolean"]
+    try:
+        data = response.json()
+    except json.JSONDecodeError as exc:
+        preview = response.text[:100]
+        raise ValueError(
+            f"Expected JSON response for ASK query, got: {preview}"
+        ) from exc
+
+    if not isinstance(data, dict) or "boolean" not in data:
+        keys = list(data.keys()) if isinstance(data, dict) else type(data).__name__
+        raise ValueError(f"ASK response missing 'boolean' key. Got: {keys}")
+
+    return data["boolean"]
