@@ -1,6 +1,7 @@
 from collections import UserDict
 
 from rdflib.plugins.sparql import prepareQuery
+from pyparsing import ParseException
 from sparqlx.utils.converters import _convert_ask, _convert_bindings, _convert_graph
 from sparqlx.utils.types import _TRequestDataValue, _TResponseFormat
 
@@ -45,7 +46,10 @@ class QueryOperationParameters:
     ) -> None:
         self._query = query
         self._convert = convert
-        self._query_type = prepareQuery(query).algebra.name
+        try:
+            self._query_type = prepareQuery(query).algebra.name
+        except ParseException as exc:
+            raise ValueError(f"Invalid SPARQL query: {exc}") from exc
         self._response_format = response_format
 
         self.data: SPARQLOperationDataMap = SPARQLOperationDataMap(
