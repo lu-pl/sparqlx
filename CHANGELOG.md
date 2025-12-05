@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/lu-pl/sparqlx/compare/v0.4.0...v0.4.1) (2025-12-05)
+
+
+### Documentation
+
+* add contribution guide ([4357e81](https://github.com/lu-pl/sparqlx/commit/4357e81d3fb107df62029268f298cfd34240aedc))
+
 ## [0.4.0](https://github.com/lu-pl/sparqlx/compare/v0.3.0...v0.4.0) (2025-11-12)
 
 
