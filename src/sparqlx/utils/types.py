@@ -61,16 +61,44 @@ _TGraphResponseFormat = PyLiteral["turtle", "xml", "ntriples", "json-ld"]
 _TResponseFormat = _TBindingsResponseFormat | _TGraphResponseFormat
 
 
-class SelectQuery(str): ...
+class SelectQuery(str):
+    """Type marker for SPARQL SELECT queries.
+
+    This class inherits from str and is used to provide type-safe query handling.
+    When convert=True, SELECT queries return list[_TSPARQLBinding].
+    """
+
+    ...
 
 
-class AskQuery(str): ...
+class AskQuery(str):
+    """Type marker for SPARQL ASK queries.
+
+    This class inherits from str and is used to provide type-safe query handling.
+    When convert=True, ASK queries return bool.
+    """
+
+    ...
 
 
-class ConstructQuery(str): ...
+class ConstructQuery(str):
+    """Type marker for SPARQL CONSTRUCT queries.
+
+    This class inherits from str and is used to provide type-safe query handling.
+    When convert=True, CONSTRUCT queries return rdflib.Graph.
+    """
+
+    ...
 
 
-class DescribeQuery(str): ...
+class DescribeQuery(str):
+    """Type marker for SPARQL DESCRIBE queries.
+
+    This class inherits from str and is used to provide type-safe query handling.
+    When convert=True, DESCRIBE queries return rdflib.Graph.
+    """
+
+    ...
 
 
 type _TQuery = str | SelectQuery | AskQuery | ConstructQuery | DescribeQuery

@@ -38,6 +38,19 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         aclient: httpx.AsyncClient | None = None,
         aclient_config: dict | None = None,
     ) -> None:
+        """Initialize a new SPARQLWrapper instance.
+
+        Args:
+            sparql_endpoint: URL of the SPARQL query endpoint.
+            update_endpoint: URL of the SPARQL update endpoint.
+            client: Optional pre-configured httpx.Client for synchronous requests.
+            client_config: Configuration dict for creating a new httpx.Client if
+                client is not provided.
+            aclient: Optional pre-configured httpx.AsyncClient for async requests.
+            aclient_config: Configuration dict for creating a new httpx.AsyncClient
+                if aclient is not provided.
+
+        """
         self.sparql_endpoint = sparql_endpoint
         self.update_endpoint = update_endpoint
 
@@ -49,17 +62,45 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         )
 
     def __enter__(self) -> Self:
+        """Enter the synchronous context manager.
+
+        Returns:
+            Self: The SPARQLWrapper instance.
+
+        """
         self._client_manager._client = self._client_manager.client
         return self
 
     def __exit__(self, exc_type, exc_value, traceback) -> None:
+        """Exit the synchronous context manager and close the client.
+
+        Args:
+            exc_type: Exception type if an exception occurred.
+            exc_value: Exception value if an exception occurred.
+            traceback: Traceback if an exception occurred.
+
+        """
         self._client_manager.client.close()
 
     async def __aenter__(self) -> Self:
+        """Enter the asynchronous context manager.
+
+        Returns:
+            Self: The SPARQLWrapper instance.
+
+        """
         self._client_manager._aclient = self._client_manager.aclient
         return self
 
     async def __aexit__(self, exc_type, exc_value, traceback) -> None:
+        """Exit the asynchronous context manager and close the async client.
+
+        Args:
+            exc_type: Exception type if an exception occurred.
+            exc_value: Exception value if an exception occurred.
+            traceback: Traceback if an exception occurred.
+
+        """
         await self._client_manager.aclient.aclose()
 
     @overload
@@ -126,6 +167,33 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         default_graph_uri: _TRequestDataValue = None,
         named_graph_uri: _TRequestDataValue = None,
     ) -> httpx.Response | list[_TSPARQLBinding] | Graph | bool:
+        """Execute a SPARQL query synchronously.
+
+        Args:
+            query: The SPARQL query string. Can be a SelectQuery, AskQuery,
+                ConstructQuery, or DescribeQuery for type-safe results.
+            convert: If True, convert the response to a Python object
+                (list of bindings, Graph, or bool). If False, return the
+                raw httpx.Response.
+            response_format: Desired response format (e.g., 'json', 'xml', 'turtle').
+                If not specified, defaults are chosen based on query type.
+            version: SPARQL version parameter to include in the request.
+            default_graph_uri: URI(s) of default graph(s) to query. Can be a single
+                URI string or a list of URI strings.
+            named_graph_uri: URI(s) of named graph(s) to query. Can be a single
+                URI string or a list of URI strings.
+
+        Returns:
+            If convert=True, returns type-specific results:
+                - SelectQuery: list[_TSPARQLBinding]
+                - AskQuery: bool
+                - ConstructQuery/DescribeQuery: rdflib.Graph
+            If convert=False, returns the raw httpx.Response.
+
+        Raises:
+            httpx.HTTPStatusError: If the request returns an error status code.
+
+        """
         params = QueryOperationParameters(
             query=query,
             convert=convert,
@@ -211,6 +279,33 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         default_graph_uri: _TRequestDataValue = None,
         named_graph_uri: _TRequestDataValue = None,
     ) -> httpx.Response | list[_TSPARQLBinding] | Graph | bool:
+        """Execute a SPARQL query asynchronously.
+
+        Args:
+            query: The SPARQL query string. Can be a SelectQuery, AskQuery,
+                ConstructQuery, or DescribeQuery for type-safe results.
+            convert: If True, convert the response to a Python object
+                (list of bindings, Graph, or bool). If False, return the
+                raw httpx.Response.
+            response_format: Desired response format (e.g., 'json', 'xml', 'turtle').
+                If not specified, defaults are chosen based on query type.
+            version: SPARQL version parameter to include in the request.
+            default_graph_uri: URI(s) of default graph(s) to query. Can be a single
+                URI string or a list of URI strings.
+            named_graph_uri: URI(s) of named graph(s) to query. Can be a single
+                URI string or a list of URI strings.
+
+        Returns:
+            If convert=True, returns type-specific results:
+                - SelectQuery: list[_TSPARQLBinding]
+                - AskQuery: bool
+                - ConstructQuery/DescribeQuery: rdflib.Graph
+            If convert=False, returns the raw httpx.Response.
+
+        Raises:
+            httpx.HTTPStatusError: If the request returns an error status code.
+
+        """
         params = QueryOperationParameters(
             query=query,
             convert=convert,
@@ -244,6 +339,26 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         ] = httpx.Response.iter_bytes,
         chunk_size: int | None = None,
     ) -> Iterator[T]:
+        """Execute a SPARQL query and stream the response synchronously.
+
+        Args:
+            query: The SPARQL query string.
+            response_format: Desired response format (e.g., 'json', 'xml', 'turtle').
+            version: SPARQL version parameter to include in the request.
+            default_graph_uri: URI(s) of default graph(s) to query.
+            named_graph_uri: URI(s) of named graph(s) to query.
+            streaming_method: Method to use for streaming the response.
+                Defaults to httpx.Response.iter_bytes.
+            chunk_size: Size of chunks to stream. If None, uses the streaming
+                method's default chunk size.
+
+        Yields:
+            Chunks of type T as determined by the streaming_method.
+
+        Raises:
+            httpx.HTTPStatusError: If the request returns an error status code.
+
+        """
         params = QueryOperationParameters(
             query=query,
             response_format=response_format,
@@ -282,6 +397,26 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         ] = httpx.Response.aiter_bytes,
         chunk_size: int | None = None,
     ) -> AsyncIterator[T]:
+        """Execute a SPARQL query and stream the response asynchronously.
+
+        Args:
+            query: The SPARQL query string.
+            response_format: Desired response format (e.g., 'json', 'xml', 'turtle').
+            version: SPARQL version parameter to include in the request.
+            default_graph_uri: URI(s) of default graph(s) to query.
+            named_graph_uri: URI(s) of named graph(s) to query.
+            streaming_method: Method to use for streaming the response.
+                Defaults to httpx.Response.aiter_bytes.
+            chunk_size: Size of chunks to stream. If None, uses the streaming
+                method's default chunk size.
+
+        Yields:
+            Chunks of type T as determined by the streaming_method.
+
+        Raises:
+            httpx.HTTPStatusError: If the request returns an error status code.
+
+        """
         params = QueryOperationParameters(
             query=query,
             response_format=response_format,
@@ -339,6 +474,27 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         default_graph_uri: _TRequestDataValue = None,
         named_graph_uri: _TRequestDataValue = None,
     ) -> Iterator[httpx.Response | list[_TSPARQLBinding] | Graph | bool]:
+        """Execute multiple SPARQL queries concurrently.
+
+        This method runs multiple queries in parallel using asyncio.TaskGroup
+        and returns their results as an iterator.
+
+        Args:
+            *queries: Variable number of SPARQL query strings to execute.
+            convert: If True, convert responses to Python objects. If False,
+                return raw httpx.Response objects.
+            response_format: Desired response format for all queries.
+            version: SPARQL version parameter for all queries.
+            default_graph_uri: URI(s) of default graph(s) for all queries.
+            named_graph_uri: URI(s) of named graph(s) for all queries.
+
+        Returns:
+            Iterator of results, one for each query in the order they were provided.
+
+        Raises:
+            httpx.HTTPStatusError: If any request returns an error status code.
+
+        """
         query_component = SPARQLWrapper(
             sparql_endpoint=self.sparql_endpoint, aclient=self._client_manager.aclient
         )
@@ -371,6 +527,23 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         using_graph_uri: _TRequestDataValue = None,
         using_named_graph_uri: _TRequestDataValue = None,
     ) -> httpx.Response:
+        """Execute a SPARQL Update operation synchronously.
+
+        Args:
+            update_request: The SPARQL Update request string.
+            version: SPARQL version parameter to include in the request.
+            using_graph_uri: URI(s) of graph(s) to use for the update operation.
+                Can be a single URI string or a list of URI strings.
+            using_named_graph_uri: URI(s) of named graph(s) to use for the update.
+                Can be a single URI string or a list of URI strings.
+
+        Returns:
+            The raw httpx.Response from the update endpoint.
+
+        Raises:
+            httpx.HTTPStatusError: If the request returns an error status code.
+
+        """
         params = UpdateOperationParameters(
             update_request=update_request,
             version=version,
@@ -394,6 +567,23 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         using_graph_uri: _TRequestDataValue = None,
         using_named_graph_uri: _TRequestDataValue = None,
     ) -> httpx.Response:
+        """Execute a SPARQL Update operation asynchronously.
+
+        Args:
+            update_request: The SPARQL Update request string.
+            version: SPARQL version parameter to include in the request.
+            using_graph_uri: URI(s) of graph(s) to use for the update operation.
+                Can be a single URI string or a list of URI strings.
+            using_named_graph_uri: URI(s) of named graph(s) to use for the update.
+                Can be a single URI string or a list of URI strings.
+
+        Returns:
+            The raw httpx.Response from the update endpoint.
+
+        Raises:
+            httpx.HTTPStatusError: If the request returns an error status code.
+
+        """
         params = UpdateOperationParameters(
             update_request=update_request,
             version=version,
@@ -417,6 +607,25 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         using_graph_uri: _TRequestDataValue = None,
         using_named_graph_uri: _TRequestDataValue = None,
     ) -> Iterator[httpx.Response]:
+        """Execute multiple SPARQL Update operations concurrently.
+
+        This method runs multiple update operations in parallel using asyncio.TaskGroup
+        and returns their results as an iterator.
+
+        Args:
+            *update_requests: Variable number of SPARQL Update request strings to execute.
+            version: SPARQL version parameter for all update operations.
+            using_graph_uri: URI(s) of graph(s) to use for all update operations.
+            using_named_graph_uri: URI(s) of named graph(s) to use for all updates.
+
+        Returns:
+            Iterator of httpx.Response objects, one for each update request in
+            the order they were provided.
+
+        Raises:
+            httpx.HTTPStatusError: If any request returns an error status code.
+
+        """
         update_component = SPARQLWrapper(
             update_endpoint=self.update_endpoint, aclient=self._client_manager.aclient
         )

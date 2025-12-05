@@ -27,5 +27,13 @@ dev = [
     "testcontainers>=4.12.0",
 ]
 
+[tool.ruff.lint]
+extend-select = [
+    "D", # pydocstyle
+]
+
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
+"tests/**/*.py" = [
+    "D", # pydocstyle
+]
