@@ -6,8 +6,7 @@ from typing import Any
 from urllib.parse import parse_qs
 
 import httpx
-
-from sparqlx.utils.types import _TSPARQLBinding
+from sparqlx.types import SPARQLResultBinding, SPARQLResultBindingValue
 
 
 def parse_response_qs(response: httpx.Response) -> dict[str, list]:
@@ -26,11 +25,11 @@ async def acall(obj: Any, method: str, *args, **kwargs):
 
 
 def sparql_result_set_equal(
-    result_1: Iterable[_TSPARQLBinding], result_2: Iterable[_TSPARQLBinding]
+    result_1: Iterable[SPARQLResultBinding], result_2: Iterable[SPARQLResultBinding]
 ) -> bool:
     def freeze(
-        result: Iterable[_TSPARQLBinding],
-    ) -> set[frozenset[tuple[str, _TSPARQLBinding]]]:
+        result: Iterable[SPARQLResultBinding],
+    ) -> set[frozenset[tuple[str, SPARQLResultBindingValue]]]:
         return {frozenset(binding.items()) for binding in result}
 
     return freeze(result_1) == freeze(result_2)
