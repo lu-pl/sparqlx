@@ -1,8 +1,8 @@
 from collections import UserDict
 
 from rdflib.plugins.sparql import prepareQuery
+from sparqlx.types import RequestDataValue, SPARQLResponseFormat
 from sparqlx.utils.converters import _convert_ask, _convert_bindings, _convert_graph
-from sparqlx.utils.types import _TRequestDataValue, _TResponseFormat
 
 
 class MimeTypeMap(UserDict):
@@ -38,10 +38,10 @@ class QueryOperationParameters:
         self,
         query: str,
         convert: bool | None = None,
-        response_format: _TResponseFormat | str | None = None,
+        response_format: SPARQLResponseFormat | str | None = None,
         version: str | None = None,
-        default_graph_uri: _TRequestDataValue = None,
-        named_graph_uri: _TRequestDataValue = None,
+        default_graph_uri: RequestDataValue = None,
+        named_graph_uri: RequestDataValue = None,
     ) -> None:
         self._query = query
         self._convert = convert
@@ -99,8 +99,8 @@ class UpdateOperationParameters:
         self,
         update_request: str,
         version: str | None = None,
-        using_graph_uri: _TRequestDataValue = None,
-        using_named_graph_uri: _TRequestDataValue = None,
+        using_graph_uri: RequestDataValue = None,
+        using_named_graph_uri: RequestDataValue = None,
     ):
         self.data: SPARQLOperationDataMap = SPARQLOperationDataMap(
             update=update_request,
