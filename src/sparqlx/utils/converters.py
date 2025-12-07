@@ -3,12 +3,12 @@ import json
 
 import httpx
 from rdflib import BNode, Graph, Literal, URIRef
-from sparqlx.utils.types import _TSPARQLBinding, _TSPARQLBindingValue
+from sparqlx.types import SPARQLResultBinding, SPARQLResultBindingValue
 
 
 def _convert_bindings(
     response: httpx.Response,
-) -> list[_TSPARQLBinding]:
+) -> list[SPARQLResultBinding]:
     """Get flat dicts from a SPARQL SELECT JSON response."""
 
     try:
@@ -22,7 +22,7 @@ def _convert_bindings(
     variables = json_response["head"]["vars"]
     response_bindings = json_response["results"]["bindings"]
 
-    def _get_binding_pairs(binding) -> Iterator[tuple[str, _TSPARQLBindingValue]]:
+    def _get_binding_pairs(binding) -> Iterator[tuple[str, SPARQLResultBindingValue]]:
         """Generate key value pairs from response_bindings.
 
         The 'type' and 'datatype' fields of the JSON response
