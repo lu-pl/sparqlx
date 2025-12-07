@@ -1,12 +1,19 @@
 from sparqlx.sparqlwrapper import SPARQLWrapper
-from sparqlx.utils.types import (
+from sparqlx.types import (
     AskQuery,
     ConstructQuery,
     DescribeQuery,
+    SPARQLQuery,
+    SPARQLQueryType,
     SelectQuery,
-    _TBindingsResponseFormat,
-    _TGraphResponseFormat,
-    _TLiteralToPython,
-    _TSPARQLBinding,
-    _TSPARQLBindingValue,
+)
+
+__all__ = (
+    "SPARQLWrapper",
+    "AskQuery",
+    "ConstructQuery",
+    "DescribeQuery",
+    "SPARQLQuery",
+    "SPARQLQueryType",
+    "SelectQuery",
 )
