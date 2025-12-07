@@ -5,7 +5,7 @@
   main: |
     from typing import assert_type
     from sparqlx import SPARQLWrapper, SelectQuery
-    from sparqlx.utils.types import _TSPARQLBinding
+    from sparqlx.types import SPARQLResultBinding
     from rdflib import Graph
 
     sparql_endpoint = "https://query.wikidata.org/bigdata/namespace/wdq/sparql"
@@ -16,8 +16,8 @@
     result1 = sparqlwrapper.query(query, convert=True)
     result2 = sparqlwrapper.query(SelectQuery(query), convert=True)
 
-    assert_type(result1, list[_TSPARQLBinding] | bool | Graph) | Graph | bool
-    assert_type(result2, list[_TSPARQLBinding])
+    assert_type(result1, list[SPARQLResultBinding] | bool | Graph) | Graph | bool
+    assert_type(result2, list[SPARQLResultBinding])
 
 
 - case: test_ask_query_type_narrow
@@ -27,7 +27,7 @@
   main: |
     from typing import assert_type
     from sparqlx import SPARQLWrapper, AskQuery
-    from sparqlx.utils.types import _TSPARQLBinding
+    from sparqlx.types import SPARQLResultBinding
     from rdflib import Graph
 
     sparql_endpoint = "https://query.wikidata.org/bigdata/namespace/wdq/sparql"
@@ -37,7 +37,7 @@
     result1 = sparqlwrapper.query(query, convert=True)
     result2 = sparqlwrapper.query(AskQuery(query), convert=True)
 
-    assert_type(result1, list[_TSPARQLBinding] | bool | Graph) | Graph | bool
+    assert_type(result1, list[SPARQLResultBinding] | bool | Graph) | Graph | bool
     assert_type(result2, bool)
 
 
@@ -48,7 +48,7 @@
   main: |
     from typing import assert_type
     from sparqlx import SPARQLWrapper, ConstructQuery
-    from sparqlx.utils.types import _TSPARQLBinding
+    from sparqlx.types import SPARQLResultBinding
     from rdflib import Graph
 
     sparql_endpoint = "https://query.wikidata.org/bigdata/namespace/wdq/sparql"
@@ -59,7 +59,7 @@
     result1 = sparqlwrapper.query(query, convert=True)
     result2 = sparqlwrapper.query(ConstructQuery(query), convert=True)
 
-    assert_type(result1, list[_TSPARQLBinding] | bool | Graph) | Graph | bool
+    assert_type(result1, list[SPARQLResultBinding] | bool | Graph) | Graph | bool
     assert_type(result2, Graph)
 
 
@@ -70,7 +70,7 @@
   main: |
     from typing import assert_type
     from sparqlx import SPARQLWrapper, DescribeQuery
-    from sparqlx.utils.types import _TSPARQLBinding
+    from sparqlx.types import SPARQLResultBinding
     from rdflib import Graph
 
     sparql_endpoint = "https://query.wikidata.org/bigdata/namespace/wdq/sparql"
@@ -81,5 +81,5 @@
     result1 = sparqlwrapper.query(query, convert=True)
     result2 = sparqlwrapper.query(DescribeQuery(query), convert=True)
 
-    assert_type(result1, list[_TSPARQLBinding] | bool | Graph) | Graph | bool
+    assert_type(result1, list[SPARQLResultBinding] | bool | Graph) | Graph | bool
     assert_type(result2, Graph)
