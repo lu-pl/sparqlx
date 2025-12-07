@@ -66,11 +66,12 @@ Note that only JSON is supported as a response format for `convert=True` on `SEL
 
 #### Converted Result Typing
 
-The return type for calls to `SPARQLWrapper.query` with `convert=True` is a union type `list[sparqlx._TSPARQLBinding] | bool | rdflib.Graph` - the actual runtime return type depends on the query type (`SELECT`, `ASK`, `CONSTRUCT` or `DESCRIBE`).
+The return type for calls to `SPARQLWrapper.query` with `convert=True` is a union type `list[sparqlx.types.SPARQLResultBinding] | bool | rdflib.Graph` - the actual runtime return type depends on the query type (`SELECT`, `ASK`, `CONSTRUCT` or `DESCRIBE`).
 
 Since the query type is not known at static time, type checkers are not able to narrow the union type without explicit annotation.
 
-`sparqlx` defines `typing.overloads` for the simple `str` subclasses
+`sparqlx` defines `typing.overloads` for the simple `str`/`sparqlx.types.SPARQLQueryType` subclasses
+
 - `sparqlx.SelectQuery`,
 - `sparqlx.AskQery`,
 - `sparqlx.ConstructQuery` and
