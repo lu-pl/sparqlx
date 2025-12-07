@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.5.0](https://github.com/lu-pl/sparqlx/compare/v0.4.0...v0.5.0) (2025-12-07)
+
+
+### ⚠ BREAKING CHANGES
+
+* reorganize types module
+
+### Features
+
+* reorganize types module ([735e291](https://github.com/lu-pl/sparqlx/commit/735e291eb3b564ca8faebd2be047d48ef43b1634))
+
+
+### Documentation
+
+* add contribution guide ([4357e81](https://github.com/lu-pl/sparqlx/commit/4357e81d3fb107df62029268f298cfd34240aedc))
+
 ## [0.4.0](https://github.com/lu-pl/sparqlx/compare/v0.3.0...v0.4.0) (2025-11-12)
 
 
