@@ -38,22 +38,26 @@ class ClientManager:
     @contextmanager
     def context(self) -> Iterator[httpx.Client]:
         client = self.client
-        yield client
 
-        if self._client is None:
-            client.close()
-            return
-        self._open_client_warning(client)
+        try:
+            yield client
+        finally:
+            if self._client is None:
+                client.close()
+                return
+            self._open_client_warning(client)
 
     @asynccontextmanager
     async def acontext(self) -> AsyncIterator[httpx.AsyncClient]:
         aclient = self.aclient
-        yield aclient
 
-        if self._aclient is None:
-            await aclient.aclose()
-            return
-        self._open_client_warning(aclient)
+        try:
+            yield aclient
+        finally:
+            if self._aclient is None:
+                await aclient.aclose()
+                return
+            self._open_client_warning(aclient)
 
     @staticmethod
     def _open_client_warning(client: httpx.Client | httpx.AsyncClient) -> None:
