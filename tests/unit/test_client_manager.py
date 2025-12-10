@@ -1,9 +1,12 @@
 import asyncio
+from contextlib import suppress
 import random
 
 import httpx
 import pytest
 from sparqlx.utils.client_manager import ClientManager
+
+from utils import as_async_cm
 
 
 def test_client_manager_automanaged_client():
@@ -177,3 +180,56 @@ async def test_client_manager_shared_aclient_multi_coros():
 
     await shared_aclient.aclose()
     assert shared_aclient.is_closed
+
+
+def test_client_manager_cleanup_automanaged_client():
+    """Check that ClientManager.context closes an automanaged client if an exceptional state occurs."""
+    client_manager = ClientManager()
+
+    with suppress(RuntimeError), client_manager.context() as client:
+        raise RuntimeError
+
+    assert client.is_closed
+
+
+def test_client_manager_cleanup_shared_client():
+    """Check that ClientManager.context does NOT close a shared client if an exceptional state occurs."""
+    shared_client = httpx.Client()
+    client_manager = ClientManager(client=shared_client)
+
+    with suppress(RuntimeError), client_manager.context() as client:
+        raise RuntimeError
+
+    assert not client.is_closed
+
+
+@pytest.mark.asyncio
+async def test_client_manager_cleanup_automanaged_aclient():
+    """Check that ClientManager.acontext closes an automanaged aclient if an exceptional state occurs."""
+    client_manager = ClientManager()
+
+    async with (
+        as_async_cm(suppress(RuntimeError)),
+        client_manager.acontext() as aclient,
+    ):
+        raise RuntimeError
+
+    assert aclient.is_closed
+
+
+@pytest.mark.asyncio
+async def test_client_manager_cleanup_shared_aclient():
+    """Check that ClientManager.acontext does NOT close a shared aclient if an exceptional state occurs."""
+    shared_aclient = httpx.AsyncClient()
+    client_manager = ClientManager(aclient=shared_aclient)
+
+    async with (
+        as_async_cm(suppress(RuntimeError)),
+        client_manager.acontext() as aclient,
+    ):
+        assert aclient is shared_aclient
+        assert not aclient.is_closed
+
+        raise RuntimeError
+
+    assert not aclient.is_closed
