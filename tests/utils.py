@@ -1,7 +1,8 @@
 """SPARQLx testing utils."""
 
 import asyncio
-from collections.abc import Iterable
+from collections.abc import AsyncIterator, Iterable
+from contextlib import AbstractContextManager, asynccontextmanager
 from typing import Any
 from urllib.parse import parse_qs
 
@@ -33,3 +34,16 @@ def sparql_result_set_equal(
         return {frozenset(binding.items()) for binding in result}
 
     return freeze(result_1) == freeze(result_2)
+
+
+@asynccontextmanager
+async def as_async_cm[T](sync_cm: AbstractContextManager[T]) -> AsyncIterator[T]:
+    """Async context wrapper around a sync context manager.
+
+    The async context manager allows to call a sync context manager
+    from an async context statement. This workaround is mentioned in PEP 806,
+    see https://peps.python.org/pep-0806/#workaround-an-as-acm-wrapper.
+    """
+    with sync_cm as result:
+        await asyncio.sleep(0)
+        yield result
