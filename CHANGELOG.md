@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.2](https://github.com/lu-pl/sparqlx/compare/v0.5.1...v0.5.2) (2025-12-11)
+
+
+### Bug Fixes
+
+* implement exceptional state handling in ClientManager contexts ([858b023](https://github.com/lu-pl/sparqlx/commit/858b0231069369f01185f6600bfa747bb9d18235))
+
 ## [0.5.0](https://github.com/lu-pl/sparqlx/compare/v0.4.0...v0.5.0) (2025-12-07)
 
 
