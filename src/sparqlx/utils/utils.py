@@ -1,6 +1,7 @@
 from collections import UserDict
 
 from rdflib.plugins.sparql import prepareQuery
+from rdflib.plugins.sparql.sparql import Query
 from sparqlx.types import RequestDataValue, SPARQLResponseFormat
 from sparqlx.utils.converters import _convert_ask, _convert_bindings, _convert_graph
 
@@ -33,6 +34,10 @@ class SPARQLOperationDataMap(UserDict):
         self.data = {k.replace("_", "-"): v for k, v in kwargs.items() if v is not None}
 
 
+class SPARQLParseException(Exception):
+    """Exception for signalling a SPARQL parsing failure."""
+
+
 class QueryOperationParameters:
     def __init__(
         self,
@@ -45,8 +50,14 @@ class QueryOperationParameters:
     ) -> None:
         self._query = query
         self._convert = convert
-        self._query_type = prepareQuery(query).algebra.name
         self._response_format = response_format
+
+        try:
+            self._prepared_query: Query = prepareQuery(query)
+        except Exception as exc:
+            raise SPARQLParseException(exc) from exc
+        else:
+            self._query_type: str = self._prepared_query.algebra.name
 
         self.data: SPARQLOperationDataMap = SPARQLOperationDataMap(
             query=query,

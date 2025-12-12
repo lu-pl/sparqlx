@@ -7,9 +7,11 @@ from sparqlx.types import (
     SPARQLQueryType,
     SelectQuery,
 )
+from sparqlx.utils.utils import SPARQLParseException
 
 __all__ = (
     "SPARQLWrapper",
+    "SPARQLParseException",
     "AskQuery",
     "ConstructQuery",
     "DescribeQuery",
