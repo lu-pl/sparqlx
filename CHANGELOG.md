@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/lu-pl/sparqlx/compare/v0.5.2...v0.6.0) (2025-12-13)
+
+
+### Features
+
+* add SPARQLParseException for signalling parsing failure ([94f378d](https://github.com/lu-pl/sparqlx/commit/94f378ddfef766a69b0a9c41d62626745b891072))
+
 ## [0.5.2](https://github.com/lu-pl/sparqlx/compare/v0.5.1...v0.5.2) (2025-12-11)
 
 
