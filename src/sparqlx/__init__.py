@@ -5,6 +5,7 @@ from sparqlx.types import (
     DescribeQuery,
     SPARQLQuery,
     SPARQLQueryType,
+    SPARQLQueryTypeLiteral,
     SelectQuery,
 )
 from sparqlx.utils.utils import SPARQLParseException
@@ -18,4 +19,5 @@ __all__ = (
     "SPARQLQuery",
     "SPARQLQueryType",
     "SelectQuery",
+    "SPARQLQueryTypeLiteral",
 )
