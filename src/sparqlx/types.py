@@ -24,6 +24,7 @@ __all__ = (
     "ConstructQuery",
     "DescribeQuery",
     "SPARQLQuery",
+    "SPARQLQueryTypeLiteral",
 )
 
 
@@ -94,3 +95,8 @@ class DescribeQuery(SPARQLQueryType): ...
 
 
 type SPARQLQuery = str | SelectQuery | AskQuery | ConstructQuery | DescribeQuery
+
+
+type SPARQLQueryTypeLiteral = PyLiteral[
+    "SelectQuery", "AskQuery", "ConstructQuery", "DescribeQuery"
+]
