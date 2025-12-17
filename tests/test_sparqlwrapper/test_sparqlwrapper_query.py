@@ -12,6 +12,11 @@ import httpx
 import pytest
 from rdflib import BNode, Graph, Literal, URIRef, XSD
 from rdflib.compare import isomorphic
+from sparqlx import SPARQLWrapper
+from sparqlx.utils.operation_parameters import (
+    rdf_response_format_map,
+    sparql_result_response_format_map,
+)
 
 from conftest import FusekiEndpoints
 from data.queries import (
@@ -23,8 +28,6 @@ from data.queries import (
     select_query_types,
     select_query_xy_values,
 )
-from sparqlx import SPARQLWrapper
-from sparqlx.utils.utils import bindings_format_map, graph_format_map
 from utils import acall
 
 
@@ -105,7 +108,7 @@ async def test_sparqlwrapper_query(method, param, triplestore):
 )
 @pytest.mark.parametrize(
     "response_format",
-    [None, *bindings_format_map.keys()],
+    [None, *sparql_result_response_format_map.keys()],
 )
 @pytest.mark.asyncio
 async def test_sparqlwrapper_query_binding_result_formats(
@@ -129,7 +132,7 @@ async def test_sparqlwrapper_query_binding_result_formats(
 @pytest.mark.parametrize("method", ["query", "aquery"])
 @pytest.mark.parametrize("query", [construct_query_x_values, describe_query])
 @pytest.mark.parametrize(
-    "response_format", [None, *graph_format_map.keys(), "application/n-triples"]
+    "response_format", [None, *rdf_response_format_map.keys(), "application/n-triples"]
 )
 @pytest.mark.asyncio
 async def test_sparqlwrapper_query_graph_result_formats(
