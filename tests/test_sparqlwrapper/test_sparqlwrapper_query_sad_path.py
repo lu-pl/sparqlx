@@ -4,7 +4,7 @@ from typing import NamedTuple
 
 import pytest
 from sparqlx import SPARQLParseException, SPARQLWrapper
-from sparqlx.utils.utils import bindings_format_map
+from sparqlx.utils.operation_parameters import sparql_result_response_format_map
 
 from data.queries import ask_query_false, ask_query_true, select_query_xy_values
 
@@ -13,7 +13,8 @@ from data.queries import ask_query_false, ask_query_true, select_query_xy_values
     "query", [select_query_xy_values, ask_query_true, ask_query_false]
 )
 @pytest.mark.parametrize(
-    "response_format", filter(lambda k: k != "json", bindings_format_map.keys())
+    "response_format",
+    filter(lambda k: k != "json", sparql_result_response_format_map.keys()),
 )
 def test_sparqlwrapper_result_binding_conversion_non_json_fail(
     query, response_format, triplestore
