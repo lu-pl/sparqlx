@@ -14,12 +14,17 @@ from sparqlx.types import (
     DescribeQuery,
     RequestDataValue,
     SPARQLQuery,
+    SPARQLQueryTypeLiteral,
     SPARQLResponseFormat,
     SPARQLResultBinding,
     SelectQuery,
 )
 from sparqlx.utils.client_manager import ClientManager
-from sparqlx.utils.utils import QueryOperationParameters, UpdateOperationParameters
+from sparqlx.utils.operation_parameters import (
+    QueryOperationParameters,
+    UpdateOperationParameters,
+)
+from sparqlx.utils.utils import _get_query_type, _get_response_converter
 
 
 class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
@@ -126,26 +131,34 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         default_graph_uri: RequestDataValue = None,
         named_graph_uri: RequestDataValue = None,
     ) -> httpx.Response | list[SPARQLResultBinding] | Graph | bool:
+        query_type: SPARQLQueryTypeLiteral = _get_query_type(query=query)
+
         params = QueryOperationParameters(
             query=query,
-            convert=convert,
+            query_type=query_type,
             response_format=response_format,
             version=version,
             default_graph_uri=default_graph_uri,
             named_graph_uri=named_graph_uri,
         )
 
+        response_handler = (
+            _get_response_converter(
+                query_type=query_type, response_format=params.request_headers["Accept"]
+            )
+            if convert
+            else lambda response: response
+        )
+
         with self._client_manager.context() as client:
             response = client.post(
                 url=self.sparql_endpoint,  # type: ignore
-                data=params.data,
-                headers=params.headers,
+                data=params.request_data,
+                headers=params.request_headers,
             )
             response.raise_for_status()
 
-        if convert:
-            return params.converter(response=response)
-        return response
+        return response_handler(response=response)
 
     @overload
     async def aquery(
@@ -211,26 +224,34 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         default_graph_uri: RequestDataValue = None,
         named_graph_uri: RequestDataValue = None,
     ) -> httpx.Response | list[SPARQLResultBinding] | Graph | bool:
+        query_type: SPARQLQueryTypeLiteral = _get_query_type(query=query)
+
         params = QueryOperationParameters(
             query=query,
-            convert=convert,
+            query_type=query_type,
             response_format=response_format,
             version=version,
             default_graph_uri=default_graph_uri,
             named_graph_uri=named_graph_uri,
         )
 
+        response_handler = (
+            _get_response_converter(
+                query_type=query_type, response_format=params.request_headers["Accept"]
+            )
+            if convert
+            else lambda response: response
+        )
+
         async with self._client_manager.acontext() as aclient:
             response = await aclient.post(
                 url=self.sparql_endpoint,  # type: ignore
-                data=params.data,
-                headers=params.headers,
+                data=params.request_data,
+                headers=params.request_headers,
             )
             response.raise_for_status()
 
-        if convert:
-            return params.converter(response=response)
-        return response
+        return response_handler(response=response)
 
     def query_stream[T](
         self,
@@ -244,8 +265,11 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         ] = httpx.Response.iter_bytes,
         chunk_size: int | None = None,
     ) -> Iterator[T]:
+        query_type: SPARQLQueryTypeLiteral = _get_query_type(query=query)
+
         params = QueryOperationParameters(
             query=query,
+            query_type=query_type,
             response_format=response_format,
             version=version,
             default_graph_uri=default_graph_uri,
@@ -262,8 +286,8 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
             with client.stream(
                 "POST",
                 url=self.sparql_endpoint,  # type: ignore
-                data=params.data,
-                headers=params.headers,
+                data=params.request_data,
+                headers=params.request_headers,
             ) as response:
                 response.raise_for_status()
 
@@ -282,8 +306,11 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         ] = httpx.Response.aiter_bytes,
         chunk_size: int | None = None,
     ) -> AsyncIterator[T]:
+        query_type: SPARQLQueryTypeLiteral = _get_query_type(query=query)
+
         params = QueryOperationParameters(
             query=query,
+            query_type=query_type,
             response_format=response_format,
             version=version,
             default_graph_uri=default_graph_uri,
@@ -300,8 +327,8 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
             async with aclient.stream(
                 "POST",
                 url=self.sparql_endpoint,  # type: ignore
-                data=params.data,
-                headers=params.headers,
+                data=params.request_data,
+                headers=params.request_headers,
             ) as response:
                 response.raise_for_status()
 
@@ -381,8 +408,8 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         with self._client_manager.context() as client:
             response = client.post(
                 url=self.update_endpoint,  # type: ignore
-                data=params.data,
-                headers=params.headers,
+                data=params.request_data,
+                headers=params.request_headers,
             )
             response.raise_for_status()
             return response
@@ -404,8 +431,8 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         async with self._client_manager.acontext() as aclient:
             response = await aclient.post(
                 url=self.update_endpoint,  # type: ignore
-                data=params.data,
-                headers=params.headers,
+                data=params.request_data,
+                headers=params.request_headers,
             )
             response.raise_for_status()
             return response
