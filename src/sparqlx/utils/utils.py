@@ -1,9 +1,17 @@
-from typing import cast
+from typing import TypeGuard, get_args
 
 from rdflib.plugins.sparql import prepareQuery
 from rdflib.plugins.sparql.parser import parseUpdate
 from rdflib.plugins.sparql.sparql import Query
-from sparqlx.types import SPARQLQuery, SPARQLQueryTypeLiteral, SPARQLResponseFormat
+from sparqlx.types import (
+    AskQuery,
+    ConstructQuery,
+    DescribeQuery,
+    SPARQLQuery,
+    SPARQLQueryTypeLiteral,
+    SPARQLResponseFormat,
+    SelectQuery,
+)
 from sparqlx.utils.converters import _convert_ask, _convert_bindings, _convert_graph
 
 
@@ -23,15 +31,50 @@ def _parse_udpate_request(update_request: str) -> None:
         raise UpdateParseException(exc) from exc
 
 
-def _get_query_type(query: SPARQLQuery) -> SPARQLQueryTypeLiteral:
-    try:
-        _prepared_query: Query = prepareQuery(query)
-    except Exception as exc:
-        raise QueryParseException(exc) from exc
-    else:
-        query_type = _prepared_query.algebra.name
+def _is_sparql_query_type_literal(value) -> TypeGuard[SPARQLQueryTypeLiteral]:
+    return value in get_args(SPARQLQueryTypeLiteral.__value__)
 
-    return cast(SPARQLQueryTypeLiteral, query_type)
+
+def _get_query_type(query: SPARQLQuery, parse: bool) -> SPARQLQueryTypeLiteral:
+    def _from_typed_query(
+        query: SelectQuery | AskQuery | ConstructQuery | DescribeQuery,
+    ) -> SPARQLQueryTypeLiteral:
+        match query:
+            case SelectQuery():
+                query_type = "SelectQuery"
+            case AskQuery():
+                query_type = "AskQuery"
+            case ConstructQuery():
+                query_type = "ConstructQuery"
+            case DescribeQuery():
+                query_type = "DescribeQuery"
+            case _:  # pragma: no cover
+                assert False, "This should never happen."
+
+        return query_type
+
+    def _from_parsed_query(query: str) -> SPARQLQueryTypeLiteral:
+        try:
+            _prepared_query: Query = prepareQuery(query)
+        except Exception as exc:
+            raise QueryParseException(exc) from exc
+        else:
+            query_type = _prepared_query.algebra.name
+
+        assert _is_sparql_query_type_literal(query_type)
+        return query_type
+
+    is_typed_query: bool = isinstance(
+        query, SelectQuery | AskQuery | ConstructQuery | DescribeQuery
+    )
+
+    if not is_typed_query and not parse:
+        msg = "Query must be of type SelectQuery | AskQuery | ConstructQuery | DescribeQuery if parse=False."
+        raise ValueError(msg)
+    elif is_typed_query and not parse:
+        return _from_typed_query(query)
+    else:
+        return _from_parsed_query(query)
 
 
 def _get_response_converter(
