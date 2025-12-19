@@ -8,11 +8,12 @@ from sparqlx.types import (
     SPARQLQueryTypeLiteral,
     SelectQuery,
 )
-from sparqlx.utils.utils import SPARQLParseException
+from sparqlx.utils.utils import QueryParseException, SPARQLParseException
 
 __all__ = (
     "SPARQLWrapper",
     "SPARQLParseException",
+    "QueryParseException",
     "AskQuery",
     "ConstructQuery",
     "DescribeQuery",

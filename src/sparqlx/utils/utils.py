@@ -1,6 +1,7 @@
 from typing import cast
 
 from rdflib.plugins.sparql import prepareQuery
+from rdflib.plugins.sparql.parser import parseUpdate
 from rdflib.plugins.sparql.sparql import Query
 from sparqlx.types import SPARQLQuery, SPARQLQueryTypeLiteral, SPARQLResponseFormat
 from sparqlx.utils.converters import _convert_ask, _convert_bindings, _convert_graph
@@ -9,11 +10,14 @@ from sparqlx.utils.converters import _convert_ask, _convert_bindings, _convert_g
 class SPARQLParseException(Exception): ...
 
 
+class QueryParseException(SPARQLParseException): ...
+
+
 def _get_query_type(query: SPARQLQuery) -> SPARQLQueryTypeLiteral:
     try:
         _prepared_query: Query = prepareQuery(query)
     except Exception as exc:
-        raise SPARQLParseException(exc) from exc
+        raise QueryParseException(exc) from exc
     else:
         query_type = _prepared_query.algebra.name
 
