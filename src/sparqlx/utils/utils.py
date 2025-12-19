@@ -13,6 +13,16 @@ class SPARQLParseException(Exception): ...
 class QueryParseException(SPARQLParseException): ...
 
 
+class UpdateParseException(SPARQLParseException): ...
+
+
+def _parse_udpate_request(update_request: str) -> None:
+    try:
+        parseUpdate(update_request)
+    except Exception as exc:
+        raise UpdateParseException(exc) from exc
+
+
 def _get_query_type(query: SPARQLQuery) -> SPARQLQueryTypeLiteral:
     try:
         _prepared_query: Query = prepareQuery(query)

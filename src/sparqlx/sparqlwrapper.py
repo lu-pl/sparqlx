@@ -24,7 +24,11 @@ from sparqlx.utils.operation_parameters import (
     QueryOperationParameters,
     UpdateOperationParameters,
 )
-from sparqlx.utils.utils import _get_query_type, _get_response_converter
+from sparqlx.utils.utils import (
+    _get_query_type,
+    _get_response_converter,
+    _parse_udpate_request,
+)
 
 
 class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
@@ -398,6 +402,8 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         using_graph_uri: RequestDataValue = None,
         using_named_graph_uri: RequestDataValue = None,
     ) -> httpx.Response:
+        _parse_udpate_request(update_request=update_request)
+
         params = UpdateOperationParameters(
             update_request=update_request,
             version=version,
@@ -421,6 +427,8 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         using_graph_uri: RequestDataValue = None,
         using_named_graph_uri: RequestDataValue = None,
     ) -> httpx.Response:
+        _parse_udpate_request(update_request=update_request)
+
         params = UpdateOperationParameters(
             update_request=update_request,
             version=version,
