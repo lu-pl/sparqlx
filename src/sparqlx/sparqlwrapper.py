@@ -21,8 +21,9 @@ from sparqlx.types import (
 )
 from sparqlx.utils.client_manager import ClientManager
 from sparqlx.utils.operation_parameters import (
-    QueryOperationParameters,
-    UpdateOperationParameters,
+    QueryOperationParametersConstructor,
+    SPARQLOperationParameters,
+    UpdateOperationParametersConstructor,
 )
 from sparqlx.utils.utils import _get_query_type, _get_response_converter
 
@@ -42,9 +43,14 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         client_config: dict | None = None,
         aclient: httpx.AsyncClient | None = None,
         aclient_config: dict | None = None,
+        query_method: TLiteral["GET", "POST", "POST-direct"] = "POST",
+        update_method: TLiteral["POST", "POST-direct"] = "POST",
     ) -> None:
         self.sparql_endpoint = sparql_endpoint
         self.update_endpoint = update_endpoint
+
+        self.query_method = query_method
+        self.update_method = update_method
 
         self._client_manager = ClientManager(
             client=client,
@@ -133,28 +139,31 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
     ) -> httpx.Response | list[SPARQLResultBinding] | Graph | bool:
         query_type: SPARQLQueryTypeLiteral = _get_query_type(query=query)
 
-        params = QueryOperationParameters(
+        params: SPARQLOperationParameters = QueryOperationParametersConstructor(
             query=query,
             query_type=query_type,
             response_format=response_format,
             version=version,
             default_graph_uri=default_graph_uri,
             named_graph_uri=named_graph_uri,
-        )
+        ).get_params(method=self.query_method)
 
         response_handler = (
             _get_response_converter(
-                query_type=query_type, response_format=params.request_headers["Accept"]
+                query_type=query_type, response_format=params.headers["Accept"]
             )
             if convert
             else lambda response: response
         )
 
         with self._client_manager.context() as client:
-            response = client.post(
+            response = client.request(
+                method=params.method,
                 url=self.sparql_endpoint,  # type: ignore
-                data=params.request_data,
-                headers=params.request_headers,
+                content=params.content,
+                data=params.data,
+                headers=params.headers,
+                params=params.params,
             )
             response.raise_for_status()
 
@@ -226,28 +235,31 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
     ) -> httpx.Response | list[SPARQLResultBinding] | Graph | bool:
         query_type: SPARQLQueryTypeLiteral = _get_query_type(query=query)
 
-        params = QueryOperationParameters(
+        params: SPARQLOperationParameters = QueryOperationParametersConstructor(
             query=query,
             query_type=query_type,
             response_format=response_format,
             version=version,
             default_graph_uri=default_graph_uri,
             named_graph_uri=named_graph_uri,
-        )
+        ).get_params(method=self.query_method)
 
         response_handler = (
             _get_response_converter(
-                query_type=query_type, response_format=params.request_headers["Accept"]
+                query_type=query_type, response_format=params.headers["Accept"]
             )
             if convert
             else lambda response: response
         )
 
         async with self._client_manager.acontext() as aclient:
-            response = await aclient.post(
+            response = await aclient.request(
+                method=params.method,
                 url=self.sparql_endpoint,  # type: ignore
-                data=params.request_data,
-                headers=params.request_headers,
+                content=params.content,
+                data=params.data,
+                headers=params.headers,
+                params=params.params,
             )
             response.raise_for_status()
 
@@ -267,14 +279,14 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
     ) -> Iterator[T]:
         query_type: SPARQLQueryTypeLiteral = _get_query_type(query=query)
 
-        params = QueryOperationParameters(
+        params: SPARQLOperationParameters = QueryOperationParametersConstructor(
             query=query,
             query_type=query_type,
             response_format=response_format,
             version=version,
             default_graph_uri=default_graph_uri,
             named_graph_uri=named_graph_uri,
-        )
+        ).get_params(method=self.query_method)
 
         _streaming_method = (
             streaming_method
@@ -284,10 +296,12 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
 
         with self._client_manager.context() as client:
             with client.stream(
-                "POST",
+                method=params.method,
                 url=self.sparql_endpoint,  # type: ignore
-                data=params.request_data,
-                headers=params.request_headers,
+                content=params.content,
+                data=params.data,
+                headers=params.headers,
+                params=params.params,
             ) as response:
                 response.raise_for_status()
 
@@ -308,14 +322,14 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
     ) -> AsyncIterator[T]:
         query_type: SPARQLQueryTypeLiteral = _get_query_type(query=query)
 
-        params = QueryOperationParameters(
+        params: SPARQLOperationParameters = QueryOperationParametersConstructor(
             query=query,
             query_type=query_type,
             response_format=response_format,
             version=version,
             default_graph_uri=default_graph_uri,
             named_graph_uri=named_graph_uri,
-        )
+        ).get_params(method=self.query_method)
 
         _streaming_method = (
             streaming_method
@@ -325,10 +339,12 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
 
         async with self._client_manager.acontext() as aclient:
             async with aclient.stream(
-                "POST",
+                method=params.method,
                 url=self.sparql_endpoint,  # type: ignore
-                data=params.request_data,
-                headers=params.request_headers,
+                content=params.content,
+                data=params.data,
+                headers=params.headers,
+                params=params.params,
             ) as response:
                 response.raise_for_status()
 
@@ -367,7 +383,9 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         named_graph_uri: RequestDataValue = None,
     ) -> Iterator[httpx.Response | list[SPARQLResultBinding] | Graph | bool]:
         query_component = SPARQLWrapper(
-            sparql_endpoint=self.sparql_endpoint, aclient=self._client_manager.aclient
+            sparql_endpoint=self.sparql_endpoint,
+            aclient=self._client_manager.aclient,
+            query_method=self.query_method,
         )
 
         async def _runner() -> Iterator[httpx.Response]:
@@ -398,18 +416,21 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         using_graph_uri: RequestDataValue = None,
         using_named_graph_uri: RequestDataValue = None,
     ) -> httpx.Response:
-        params = UpdateOperationParameters(
+        params: SPARQLOperationParameters = UpdateOperationParametersConstructor(
             update_request=update_request,
             version=version,
             using_graph_uri=using_graph_uri,
             using_named_graph_uri=using_named_graph_uri,
-        )
+        ).get_params(method=self.update_method)
 
         with self._client_manager.context() as client:
-            response = client.post(
+            response = client.request(
+                method=params.method,
                 url=self.update_endpoint,  # type: ignore
-                data=params.request_data,
-                headers=params.request_headers,
+                content=params.content,
+                data=params.data,
+                headers=params.headers,
+                params=params.params,
             )
             response.raise_for_status()
             return response
@@ -421,18 +442,21 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         using_graph_uri: RequestDataValue = None,
         using_named_graph_uri: RequestDataValue = None,
     ) -> httpx.Response:
-        params = UpdateOperationParameters(
+        params: SPARQLOperationParameters = UpdateOperationParametersConstructor(
             update_request=update_request,
             version=version,
             using_graph_uri=using_graph_uri,
             using_named_graph_uri=using_named_graph_uri,
-        )
+        ).get_params(method=self.update_method)
 
         async with self._client_manager.acontext() as aclient:
-            response = await aclient.post(
+            response = await aclient.request(
+                method=params.method,
                 url=self.update_endpoint,  # type: ignore
-                data=params.request_data,
-                headers=params.request_headers,
+                content=params.content,
+                data=params.data,
+                headers=params.headers,
+                params=params.params,
             )
             response.raise_for_status()
             return response
@@ -445,7 +469,9 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         using_named_graph_uri: RequestDataValue = None,
     ) -> Iterator[httpx.Response]:
         update_component = SPARQLWrapper(
-            update_endpoint=self.update_endpoint, aclient=self._client_manager.aclient
+            update_endpoint=self.update_endpoint,
+            aclient=self._client_manager.aclient,
+            update_method=self.update_method,
         )
 
         async def _runner() -> Iterator[httpx.Response]:
