@@ -24,7 +24,11 @@ from sparqlx.utils.operation_parameters import (
     QueryOperationParameters,
     UpdateOperationParameters,
 )
-from sparqlx.utils.utils import _get_query_type, _get_response_converter
+from sparqlx.utils.utils import (
+    _get_query_type,
+    _get_response_converter,
+    _parse_udpate_request,
+)
 
 
 class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
@@ -42,9 +46,12 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         client_config: dict | None = None,
         aclient: httpx.AsyncClient | None = None,
         aclient_config: dict | None = None,
+        parse: bool = True,
     ) -> None:
         self.sparql_endpoint = sparql_endpoint
         self.update_endpoint = update_endpoint
+
+        self.parse = parse
 
         self._client_manager = ClientManager(
             client=client,
@@ -76,6 +83,7 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         version: str | None = None,
         default_graph_uri: RequestDataValue = None,
         named_graph_uri: RequestDataValue = None,
+        parse: bool | None = None,
     ) -> list[SPARQLResultBinding]: ...
 
     @overload
@@ -87,6 +95,7 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         version: str | None = None,
         default_graph_uri: RequestDataValue = None,
         named_graph_uri: RequestDataValue = None,
+        parse: bool | None = None,
     ) -> bool: ...
 
     @overload
@@ -98,6 +107,7 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         version: str | None = None,
         default_graph_uri: RequestDataValue = None,
         named_graph_uri: RequestDataValue = None,
+        parse: bool | None = None,
     ) -> Graph: ...
 
     @overload
@@ -109,6 +119,7 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         version: str | None = None,
         default_graph_uri: RequestDataValue = None,
         named_graph_uri: RequestDataValue = None,
+        parse: bool | None = None,
     ) -> list[SPARQLResultBinding] | Graph | bool: ...
 
     @overload
@@ -120,6 +131,7 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         version: str | None = None,
         default_graph_uri: RequestDataValue = None,
         named_graph_uri: RequestDataValue = None,
+        parse: bool | None = None,
     ) -> httpx.Response: ...
 
     def query(
@@ -130,8 +142,10 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         version: str | None = None,
         default_graph_uri: RequestDataValue = None,
         named_graph_uri: RequestDataValue = None,
+        parse: bool | None = None,
     ) -> httpx.Response | list[SPARQLResultBinding] | Graph | bool:
-        query_type: SPARQLQueryTypeLiteral = _get_query_type(query=query)
+        _parse: bool = self.parse if parse is None else parse
+        query_type: SPARQLQueryTypeLiteral = _get_query_type(query=query, parse=_parse)
 
         params = QueryOperationParameters(
             query=query,
@@ -169,6 +183,7 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         version: str | None = None,
         default_graph_uri: RequestDataValue = None,
         named_graph_uri: RequestDataValue = None,
+        parse: bool | None = None,
     ) -> list[SPARQLResultBinding]: ...
 
     @overload
@@ -180,6 +195,7 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         version: str | None = None,
         default_graph_uri: RequestDataValue = None,
         named_graph_uri: RequestDataValue = None,
+        parse: bool | None = None,
     ) -> bool: ...
 
     @overload
@@ -191,6 +207,7 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         version: str | None = None,
         default_graph_uri: RequestDataValue = None,
         named_graph_uri: RequestDataValue = None,
+        parse: bool | None = None,
     ) -> Graph: ...
 
     @overload
@@ -202,6 +219,7 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         version: str | None = None,
         default_graph_uri: RequestDataValue = None,
         named_graph_uri: RequestDataValue = None,
+        parse: bool | None = None,
     ) -> list[SPARQLResultBinding] | Graph | bool: ...
 
     @overload
@@ -213,6 +231,7 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         version: str | None = None,
         default_graph_uri: RequestDataValue = None,
         named_graph_uri: RequestDataValue = None,
+        parse: bool | None = None,
     ) -> httpx.Response: ...
 
     async def aquery(
@@ -223,8 +242,10 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         version: str | None = None,
         default_graph_uri: RequestDataValue = None,
         named_graph_uri: RequestDataValue = None,
+        parse: bool | None = None,
     ) -> httpx.Response | list[SPARQLResultBinding] | Graph | bool:
-        query_type: SPARQLQueryTypeLiteral = _get_query_type(query=query)
+        _parse: bool = self.parse if parse is None else parse
+        query_type: SPARQLQueryTypeLiteral = _get_query_type(query=query, parse=_parse)
 
         params = QueryOperationParameters(
             query=query,
@@ -264,8 +285,10 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
             [httpx.Response], Iterator[T]
         ] = httpx.Response.iter_bytes,
         chunk_size: int | None = None,
+        parse: bool | None = None,
     ) -> Iterator[T]:
-        query_type: SPARQLQueryTypeLiteral = _get_query_type(query=query)
+        _parse: bool = self.parse if parse is None else parse
+        query_type: SPARQLQueryTypeLiteral = _get_query_type(query=query, parse=_parse)
 
         params = QueryOperationParameters(
             query=query,
@@ -305,8 +328,10 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
             [httpx.Response], AsyncIterator[T]
         ] = httpx.Response.aiter_bytes,
         chunk_size: int | None = None,
+        parse: bool | None = None,
     ) -> AsyncIterator[T]:
-        query_type: SPARQLQueryTypeLiteral = _get_query_type(query=query)
+        _parse: bool = self.parse if parse is None else parse
+        query_type: SPARQLQueryTypeLiteral = _get_query_type(query=query, parse=_parse)
 
         params = QueryOperationParameters(
             query=query,
@@ -344,6 +369,7 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         version: str | None = None,
         default_graph_uri: RequestDataValue = None,
         named_graph_uri: RequestDataValue = None,
+        parse: bool | None = None,
     ) -> Iterator[list[SPARQLResultBinding] | Graph | bool]: ...
 
     @overload
@@ -355,6 +381,7 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         version: str | None = None,
         default_graph_uri: RequestDataValue = None,
         named_graph_uri: RequestDataValue = None,
+        parse: bool | None = None,
     ) -> Iterator[httpx.Response]: ...
 
     def queries(
@@ -365,9 +392,14 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         version: str | None = None,
         default_graph_uri: RequestDataValue = None,
         named_graph_uri: RequestDataValue = None,
+        parse: bool | None = None,
     ) -> Iterator[httpx.Response | list[SPARQLResultBinding] | Graph | bool]:
+        _parse: bool = self.parse if parse is None else parse
+
         query_component = SPARQLWrapper(
-            sparql_endpoint=self.sparql_endpoint, aclient=self._client_manager.aclient
+            sparql_endpoint=self.sparql_endpoint,
+            aclient=self._client_manager.aclient,
+            parse=_parse,
         )
 
         async def _runner() -> Iterator[httpx.Response]:
@@ -397,7 +429,13 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         version: str | None = None,
         using_graph_uri: RequestDataValue = None,
         using_named_graph_uri: RequestDataValue = None,
+        parse: bool | None = None,
     ) -> httpx.Response:
+        _parse: bool = self.parse if parse is None else parse
+
+        if _parse:
+            _parse_udpate_request(update_request=update_request)
+
         params = UpdateOperationParameters(
             update_request=update_request,
             version=version,
@@ -420,7 +458,13 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         version: str | None = None,
         using_graph_uri: RequestDataValue = None,
         using_named_graph_uri: RequestDataValue = None,
+        parse: bool | None = None,
     ) -> httpx.Response:
+        _parse: bool = self.parse if parse is None else parse
+
+        if _parse:
+            _parse_udpate_request(update_request=update_request)
+
         params = UpdateOperationParameters(
             update_request=update_request,
             version=version,
@@ -443,9 +487,14 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         version: str | None = None,
         using_graph_uri: RequestDataValue = None,
         using_named_graph_uri: RequestDataValue = None,
+        parse: bool | None = None,
     ) -> Iterator[httpx.Response]:
+        _parse: bool = self.parse if parse is None else parse
+
         update_component = SPARQLWrapper(
-            update_endpoint=self.update_endpoint, aclient=self._client_manager.aclient
+            update_endpoint=self.update_endpoint,
+            aclient=self._client_manager.aclient,
+            parse=_parse,
         )
 
         async def _runner() -> Iterator[httpx.Response]:
