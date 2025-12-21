@@ -1,4 +1,4 @@
-from typing import cast
+from typing import Literal as TLiteral, cast, overload
 
 from rdflib.plugins.sparql import prepareQuery
 from rdflib.plugins.sparql.sparql import Query
