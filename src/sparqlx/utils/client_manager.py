@@ -44,8 +44,8 @@ class ClientManager:
         finally:
             if self._client is None:
                 client.close()
-                return
-            self._open_client_warning(client)
+            else:
+                self._open_client_warning(client)
 
     @asynccontextmanager
     async def acontext(self) -> AsyncIterator[httpx.AsyncClient]:
@@ -56,8 +56,8 @@ class ClientManager:
         finally:
             if self._aclient is None:
                 await aclient.aclose()
-                return
-            self._open_client_warning(aclient)
+            else:
+                self._open_client_warning(aclient)
 
     @staticmethod
     def _open_client_warning(client: httpx.Client | httpx.AsyncClient) -> None:
