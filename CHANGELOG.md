@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1](https://github.com/lu-pl/sparqlx/compare/v0.6.0...v0.6.1) (2025-12-21)
+
+
+### Bug Fixes
+
+* propagate exceptions in ClientManager.context/.acontext ([932006e](https://github.com/lu-pl/sparqlx/commit/932006e1ea731c809cec81ce5cdb1c51fbd38389))
+
 ## [0.6.0](https://github.com/lu-pl/sparqlx/compare/v0.5.2...v0.6.0) (2025-12-17)
 
 
