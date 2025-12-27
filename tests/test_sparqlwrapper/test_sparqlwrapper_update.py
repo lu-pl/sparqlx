@@ -5,9 +5,9 @@ from typing import NamedTuple
 import httpx
 import pytest
 from rdflib import URIRef
-
 from sparqlx import SPARQLWrapper
-from utils import acall
+
+from utils import acall, sparql_result_set_equal
 
 
 class UpdateTestParameter(NamedTuple):
@@ -89,13 +89,17 @@ params = [
 ]
 
 
+@pytest.mark.parametrize("update_method", ["POST", "POST-direct"])
 @pytest.mark.parametrize("method", ["update", "aupdate"])
 @pytest.mark.parametrize("param", params)
 @pytest.mark.asyncio
-async def test_sparqlwrapper_update(method, param, oxigraph_service_with_data):
+async def test_sparqlwrapper_update(
+    update_method, method, param, oxigraph_service_with_data
+):
     sparqlwrapper = SPARQLWrapper(
         sparql_endpoint=oxigraph_service_with_data.sparql_endpoint,
         update_endpoint=oxigraph_service_with_data.update_endpoint,
+        update_method=update_method,
     )
 
     with sparqlwrapper as wrapper:
@@ -110,10 +114,11 @@ async def test_sparqlwrapper_update(method, param, oxigraph_service_with_data):
         )
 
         result_after_update = wrapper.query(param.query, convert=True)
-        assert result_after_update == param.expected
+        assert sparql_result_set_equal(result_after_update, param.expected)
 
 
-def test_sparqlwrapper_updates(fuseki_service):
+@pytest.mark.parametrize("update_method", ["POST", "POST-direct"])
+def test_sparqlwrapper_updates(update_method, fuseki_service):
     """Basic test for SPARQLWrapper.updates.
 
     Note: This test runs against a Fuseki Triplestore to also test auth for updates.
@@ -122,6 +127,7 @@ def test_sparqlwrapper_updates(fuseki_service):
         sparql_endpoint=fuseki_service.sparql_endpoint,
         update_endpoint=fuseki_service.update_endpoint,
         aclient_config={"auth": httpx.BasicAuth(username="admin", password="pm")},
+        update_method=update_method,
     )
 
     sparqlwrapper.updates(

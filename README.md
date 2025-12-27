@@ -335,9 +335,14 @@ Generally, the SPARQL 1.2 Protocol defines the following HTTP operations for SPA
 See [2.2 Query Operation](https://www.w3.org/TR/sparql12-protocol/#query-operation) and [2.3 Update Operation](https://www.w3.org/TR/sparql12-protocol/#update-operation).
 
 
-`sparqlx` implements <b>URL-encoded POST</b> for both Query and Update operations.
+`sparqlx` uses <b>URL-encoded POST</b> for both Query and Update operations by default.
 
-This allows to send a Request Content Type in the Accept Header and both the Query/Update Request strings and Query Parameters in the Request Message Body.
+This allows to send a Request Content Type in the Accept Header and both the Query/Update Request strings and Query/Update Parameters in the Request Message Body.
+
+`sparqlx` also implements GET (for query operations) and POST-direct (for query and update operations); the SPARQL Operation method can be set via the `query_method: typing.Literal["GET", "POST", "POST-direct"]` and `update_method: typing.Literal["POST", "POST-direct"]` parameters in the `SPARQLWrapper` class.
+
+
+
 
 
 ### SPARQL Protocol Request Parameters
