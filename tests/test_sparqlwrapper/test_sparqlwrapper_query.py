@@ -80,13 +80,14 @@ params = [
 
 
 @pytest.mark.parametrize("method", ["query", "aquery"])
+@pytest.mark.parametrize("query_method", ["GET", "POST", "POST-direct"])
 @pytest.mark.parametrize("param", params)
 @pytest.mark.asyncio
-async def test_sparqlwrapper_query(method, param, triplestore):
+async def test_sparqlwrapper_query(method, query_method, param, triplestore):
     """Run a query with convert=True and compare the result to the expected bindings."""
 
     endpoint: str = triplestore.sparql_endpoint
-    sparqlwrapper = SPARQLWrapper(sparql_endpoint=endpoint)
+    sparqlwrapper = SPARQLWrapper(sparql_endpoint=endpoint, query_method=query_method)
 
     result_converted = await acall(
         sparqlwrapper, method, query=param.query, convert=True
@@ -96,6 +97,7 @@ async def test_sparqlwrapper_query(method, param, triplestore):
 
 
 @pytest.mark.parametrize("method", ["query", "aquery"])
+@pytest.mark.parametrize("query_method", ["GET", "POST", "POST-direct"])
 @pytest.mark.parametrize(
     "query",
     [
@@ -113,6 +115,7 @@ async def test_sparqlwrapper_query(method, param, triplestore):
 @pytest.mark.asyncio
 async def test_sparqlwrapper_query_binding_result_formats(
     method,
+    query_method,
     query,
     response_format,
     triplestore,
@@ -120,7 +123,7 @@ async def test_sparqlwrapper_query_binding_result_formats(
     """Run SELECT and ASK queries with bindings result formats."""
 
     endpoint: str = triplestore.sparql_endpoint
-    sparqlwrapper = SPARQLWrapper(sparql_endpoint=endpoint)
+    sparqlwrapper = SPARQLWrapper(sparql_endpoint=endpoint, query_method=query_method)
 
     result = await acall(
         sparqlwrapper, method, query=query, response_format=response_format
@@ -130,6 +133,7 @@ async def test_sparqlwrapper_query_binding_result_formats(
 
 
 @pytest.mark.parametrize("method", ["query", "aquery"])
+@pytest.mark.parametrize("query_method", ["GET", "POST", "POST-direct"])
 @pytest.mark.parametrize("query", [construct_query_x_values, describe_query])
 @pytest.mark.parametrize(
     "response_format", [None, *rdf_response_format_map.keys(), "application/n-triples"]
@@ -137,6 +141,7 @@ async def test_sparqlwrapper_query_binding_result_formats(
 @pytest.mark.asyncio
 async def test_sparqlwrapper_query_graph_result_formats(
     method,
+    query_method,
     query,
     response_format,
     triplestore_with_data,
@@ -155,7 +160,7 @@ async def test_sparqlwrapper_query_graph_result_formats(
         )
 
     endpoint: str = triplestore_with_data.sparql_endpoint
-    sparqlwrapper = SPARQLWrapper(sparql_endpoint=endpoint)
+    sparqlwrapper = SPARQLWrapper(sparql_endpoint=endpoint, query_method=query_method)
 
     result = await acall(
         sparqlwrapper, method, query=query, response_format=response_format
@@ -173,8 +178,9 @@ async def test_sparqlwrapper_query_graph_result_formats(
     assert result_converted
 
 
+@pytest.mark.parametrize("query_method", ["GET", "POST", "POST-direct"])
 @pytest.mark.asyncio
-async def test_sparqlwrapper_warn_open_client(triplestore):
+async def test_sparqlwrapper_warn_open_client(triplestore, query_method):
     """Pass a client/aclient and check if a warning is emitted."""
     endpoint: str = triplestore.sparql_endpoint
 
@@ -182,7 +188,10 @@ async def test_sparqlwrapper_warn_open_client(triplestore):
     aclient = httpx.AsyncClient()
 
     sparqlwrapper = SPARQLWrapper(
-        sparql_endpoint=endpoint, client=client, aclient=aclient
+        sparql_endpoint=endpoint,
+        client=client,
+        aclient=aclient,
+        query_method=query_method,
     )
 
     def _get_msg(client):
@@ -198,6 +207,7 @@ async def test_sparqlwrapper_warn_open_client(triplestore):
         await sparqlwrapper.aquery(select_query_xy_values)
 
 
+@pytest.mark.parametrize("query_method", ["GET", "POST", "POST-direct"])
 @pytest.mark.parametrize(
     "query",
     [
@@ -209,7 +219,7 @@ async def test_sparqlwrapper_warn_open_client(triplestore):
     ],
 )
 @pytest.mark.asyncio
-async def test_sparql_wrapper_context_managers(query, triplestore):
+async def test_sparql_wrapper_context_managers(query, query_method, triplestore):
     """Check unmanaged client/aclient status in context managers.
 
     The tests assert that client/aclient is open within a context
@@ -220,7 +230,10 @@ async def test_sparql_wrapper_context_managers(query, triplestore):
     aclient = httpx.AsyncClient()
 
     sparqlwrapper = SPARQLWrapper(
-        sparql_endpoint=endpoint, client=client, aclient=aclient
+        sparql_endpoint=endpoint,
+        client=client,
+        aclient=aclient,
+        query_method=query_method,
     )
 
     with sparqlwrapper as context_wrapper:
@@ -237,6 +250,7 @@ async def test_sparql_wrapper_context_managers(query, triplestore):
     assert result_1.content == result_2.content
 
 
+@pytest.mark.parametrize("query_method", ["GET", "POST", "POST-direct"])
 @pytest.mark.parametrize(
     "query",
     [
@@ -250,10 +264,10 @@ async def test_sparql_wrapper_context_managers(query, triplestore):
     ],
 )
 @pytest.mark.asyncio
-async def test_sparqlwrapper_streaming(query, triplestore):
+async def test_sparqlwrapper_streaming(query_method, query, triplestore):
     """Sync/async stream a response and compare lists of chunks."""
     endpoint: str = triplestore.sparql_endpoint
-    sparqlwrapper = SPARQLWrapper(sparql_endpoint=endpoint)
+    sparqlwrapper = SPARQLWrapper(sparql_endpoint=endpoint, query_method=query_method)
 
     stream = sparqlwrapper.query_stream(query, chunk_size=1)
     astream = sparqlwrapper.aquery_stream(query, chunk_size=1)
@@ -264,6 +278,7 @@ async def test_sparqlwrapper_streaming(query, triplestore):
     assert chunks == achunks
 
 
+@pytest.mark.parametrize("query_method", ["GET", "POST", "POST-direct"])
 @pytest.mark.parametrize(
     "query",
     [
@@ -274,9 +289,9 @@ async def test_sparqlwrapper_streaming(query, triplestore):
         describe_query,
     ],
 )
-def test_sparqlwrapper_queries(query, triplestore):
+def test_sparqlwrapper_queries(query_method, query, triplestore):
     endpoint: str = triplestore.sparql_endpoint
-    sparqlwrapper = SPARQLWrapper(sparql_endpoint=endpoint)
+    sparqlwrapper = SPARQLWrapper(sparql_endpoint=endpoint, query_method=query_method)
 
     queries: list[str] = [query for _ in range(5)]
 
