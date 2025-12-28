@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.7.0](https://github.com/lu-pl/sparqlx/compare/v0.6.1...v0.7.0) (2025-12-28)
+
+
+### Features
+
+* implement SPARQL Protocol Operation types ([b623bfa](https://github.com/lu-pl/sparqlx/commit/b623bfad83e88e8d96dd0f5a4d39f028a21f767f))
+
+
+### Documentation
+
+* add query method section to README ([835b0dc](https://github.com/lu-pl/sparqlx/commit/835b0dc5c32bbcf85ca3c0a983b28d470334e3be))
+
 ## [0.6.1](https://github.com/lu-pl/sparqlx/compare/v0.6.0...v0.6.1) (2025-12-21)
 
 
