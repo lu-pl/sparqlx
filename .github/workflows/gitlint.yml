@@ -1,0 +1,23 @@
+#SPDX-FileCopyrightText: 2025 Birger Schacht
+#SPDX-License-Identifier: MIT
+name: Run gitlint
+
+on:
+  pull_request:
+
+jobs:
+  gitlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Extract branch name
+        run: echo "GIT_BRANCH=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_ENV
+      - name: Install gitlint
+        run: sudo apt-get -y install gitlint
+      - name: Run gitlint
+        # We ignore:
+        # B6: body-is-missing
+        # B5: body-min-length
+        run: gitlint -c body-max-line-length.line-length=120 --fail-without-commits --contrib contrib-title-conventional-commits --ignore B6,B5 --commits origin/main..origin/$GIT_BRANCH
