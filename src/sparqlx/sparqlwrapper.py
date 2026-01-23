@@ -46,11 +46,11 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         query_method: TLiteral["GET", "POST", "POST-direct"] = "POST",
         update_method: TLiteral["POST", "POST-direct"] = "POST",
     ) -> None:
-        self.sparql_endpoint = sparql_endpoint
-        self.update_endpoint = update_endpoint
+        self._sparql_endpoint = sparql_endpoint
+        self._update_endpoint = update_endpoint
 
-        self.query_method = query_method
-        self.update_method = update_method
+        self._query_method = query_method
+        self._update_method = update_method
 
         self._client_manager = ClientManager(
             client=client,
@@ -146,7 +146,7 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
             version=version,
             default_graph_uri=default_graph_uri,
             named_graph_uri=named_graph_uri,
-        ).get_params(method=self.query_method)
+        ).get_params(method=self._query_method)  # pyright: ignore
 
         response_handler = (
             _get_response_converter(
@@ -159,7 +159,7 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         with self._client_manager.context() as client:
             response = client.request(
                 method=params.method,
-                url=self.sparql_endpoint,  # type: ignore
+                url=self._sparql_endpoint,  # type: ignore
                 content=params.content,
                 data=params.data,
                 headers=params.headers,
@@ -242,7 +242,7 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
             version=version,
             default_graph_uri=default_graph_uri,
             named_graph_uri=named_graph_uri,
-        ).get_params(method=self.query_method)
+        ).get_params(method=self._query_method)  # pyright: ignore
 
         response_handler = (
             _get_response_converter(
@@ -255,7 +255,7 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         async with self._client_manager.acontext() as aclient:
             response = await aclient.request(
                 method=params.method,
-                url=self.sparql_endpoint,  # type: ignore
+                url=self._sparql_endpoint,  # type: ignore
                 content=params.content,
                 data=params.data,
                 headers=params.headers,
@@ -286,7 +286,7 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
             version=version,
             default_graph_uri=default_graph_uri,
             named_graph_uri=named_graph_uri,
-        ).get_params(method=self.query_method)
+        ).get_params(method=self._query_method)  # pyright: ignore
 
         _streaming_method = (
             streaming_method
@@ -297,7 +297,7 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         with self._client_manager.context() as client:
             with client.stream(
                 method=params.method,
-                url=self.sparql_endpoint,  # type: ignore
+                url=self._sparql_endpoint,  # type: ignore
                 content=params.content,
                 data=params.data,
                 headers=params.headers,
@@ -329,7 +329,7 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
             version=version,
             default_graph_uri=default_graph_uri,
             named_graph_uri=named_graph_uri,
-        ).get_params(method=self.query_method)
+        ).get_params(method=self._query_method)  # pyright: ignore
 
         _streaming_method = (
             streaming_method
@@ -340,7 +340,7 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         async with self._client_manager.acontext() as aclient:
             async with aclient.stream(
                 method=params.method,
-                url=self.sparql_endpoint,  # type: ignore
+                url=self._sparql_endpoint,  # type: ignore
                 content=params.content,
                 data=params.data,
                 headers=params.headers,
@@ -383,9 +383,9 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         named_graph_uri: RequestDataValue = None,
     ) -> Iterator[httpx.Response | list[SPARQLResultBinding] | Graph | bool]:
         query_component = SPARQLWrapper(
-            sparql_endpoint=self.sparql_endpoint,
+            sparql_endpoint=self._sparql_endpoint,
             aclient=self._client_manager.aclient,
-            query_method=self.query_method,
+            query_method=self._query_method,  # pyright: ignore
         )
 
         async def _runner() -> Iterator[httpx.Response]:
@@ -421,12 +421,12 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
             version=version,
             using_graph_uri=using_graph_uri,
             using_named_graph_uri=using_named_graph_uri,
-        ).get_params(method=self.update_method)
+        ).get_params(method=self._update_method)  # pyright: ignore
 
         with self._client_manager.context() as client:
             response = client.request(
                 method=params.method,
-                url=self.update_endpoint,  # type: ignore
+                url=self._update_endpoint,  # type: ignore
                 content=params.content,
                 data=params.data,
                 headers=params.headers,
@@ -447,12 +447,12 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
             version=version,
             using_graph_uri=using_graph_uri,
             using_named_graph_uri=using_named_graph_uri,
-        ).get_params(method=self.update_method)
+        ).get_params(method=self._update_method)  # pyright: ignore
 
         async with self._client_manager.acontext() as aclient:
             response = await aclient.request(
                 method=params.method,
-                url=self.update_endpoint,  # type: ignore
+                url=self._update_endpoint,  # type: ignore
                 content=params.content,
                 data=params.data,
                 headers=params.headers,
@@ -469,9 +469,9 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         using_named_graph_uri: RequestDataValue = None,
     ) -> Iterator[httpx.Response]:
         update_component = SPARQLWrapper(
-            update_endpoint=self.update_endpoint,
+            update_endpoint=self._update_endpoint,
             aclient=self._client_manager.aclient,
-            update_method=self.update_method,
+            update_method=self._update_method,  # pyright: ignore
         )
 
         async def _runner() -> Iterator[httpx.Response]:
