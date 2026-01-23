@@ -46,6 +46,12 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         query_method: TLiteral["GET", "POST", "POST-direct"] = "POST",
         update_method: TLiteral["POST", "POST-direct"] = "POST",
     ) -> None:
+        if sparql_endpoint is None and update_endpoint is None:
+            raise ValueError(
+                "Invalid SPARQLWrapper configuration: "
+                "at least one of 'sparql_endpoint' or 'update_endpoint' must be set."
+            )
+
         self._sparql_endpoint = sparql_endpoint
         self._update_endpoint = update_endpoint
 
