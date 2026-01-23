@@ -6,8 +6,9 @@ from contextlib import AbstractAsyncContextManager, AbstractContextManager
 import functools
 from typing import Literal as TLiteral, Self, overload
 
-import httpx
 from rdflib import Graph
+
+import httpx
 from sparqlx.types import (
     AskQuery,
     ConstructQuery,
@@ -25,7 +26,13 @@ from sparqlx.utils.operation_parameters import (
     SPARQLOperationParameters,
     UpdateOperationParametersConstructor,
 )
-from sparqlx.utils.utils import _get_query_type, _get_response_converter
+from sparqlx.utils.transports import (
+    AsyncRDFLibQueryTransport,
+    AsyncRDFLibUpdateTransport,
+    RDFLibQueryTransport,
+    RDFLibUpdateTransport,
+)
+from sparqlx.utils.utils import Endpoint, _get_query_type, _get_response_converter
 
 
 class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
@@ -37,8 +44,8 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
 
     def __init__(
         self,
-        sparql_endpoint: str | None = None,
-        update_endpoint: str | None = None,
+        sparql_endpoint: str | Graph | None = None,
+        update_endpoint: str | Graph | None = None,
         client: httpx.Client | None = None,
         client_config: dict | None = None,
         aclient: httpx.AsyncClient | None = None,
@@ -51,12 +58,14 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
                 "Invalid SPARQLWrapper configuration: "
                 "at least one of 'sparql_endpoint' or 'update_endpoint' must be set."
             )
-
-        self._sparql_endpoint = sparql_endpoint
-        self._update_endpoint = update_endpoint
+        self._sparql_endpoint = Endpoint(sparql_endpoint)
+        self._update_endpoint = Endpoint(update_endpoint)
 
         self._query_method = query_method
         self._update_method = update_method
+
+        self._client_config: dict = client_config or {}
+        self._aclient_config: dict = aclient_config or {}
 
         self._client_manager = ClientManager(
             client=client,
@@ -162,10 +171,25 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
             else lambda response: response
         )
 
-        with self._client_manager.context() as client:
+        client_context: AbstractContextManager[httpx.Client] = (
+            self._client_manager.context()
+            if (graph := self._sparql_endpoint.graph) is None
+            else httpx.Client(
+                **self._client_config,
+                transport=RDFLibQueryTransport(
+                    query=query,
+                    graph=graph,
+                    version=version,
+                    default_graph_uri=default_graph_uri,
+                    named_graph_uri=named_graph_uri,
+                ),
+            )
+        )
+
+        with client_context as client:
             response = client.request(
                 method=params.method,
-                url=self._sparql_endpoint,  # type: ignore
+                url=self._sparql_endpoint.url,
                 content=params.content,
                 data=params.data,
                 headers=params.headers,
@@ -258,10 +282,25 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
             else lambda response: response
         )
 
-        async with self._client_manager.acontext() as aclient:
+        aclient_context: AbstractAsyncContextManager[httpx.AsyncClient] = (
+            self._client_manager.acontext()
+            if (graph := self._sparql_endpoint.graph) is None
+            else httpx.AsyncClient(
+                **self._client_config,
+                transport=AsyncRDFLibQueryTransport(
+                    query=query,
+                    graph=graph,
+                    version=version,
+                    default_graph_uri=default_graph_uri,
+                    named_graph_uri=named_graph_uri,
+                ),
+            )
+        )
+
+        async with aclient_context as aclient:
             response = await aclient.request(
                 method=params.method,
-                url=self._sparql_endpoint,  # type: ignore
+                url=self._sparql_endpoint.url,
                 content=params.content,
                 data=params.data,
                 headers=params.headers,
@@ -283,6 +322,10 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         ] = httpx.Response.iter_bytes,
         chunk_size: int | None = None,
     ) -> Iterator[T]:
+        if self._sparql_endpoint.graph is not None:
+            msg = "Response streaming is currently not supported for rdflib.Graph targets."
+            raise NotImplementedError(msg)
+
         query_type: SPARQLQueryTypeLiteral = _get_query_type(query=query)
 
         params: SPARQLOperationParameters = QueryOperationParametersConstructor(
@@ -303,7 +346,7 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         with self._client_manager.context() as client:
             with client.stream(
                 method=params.method,
-                url=self._sparql_endpoint,  # type: ignore
+                url=self._sparql_endpoint.url,
                 content=params.content,
                 data=params.data,
                 headers=params.headers,
@@ -326,6 +369,10 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         ] = httpx.Response.aiter_bytes,
         chunk_size: int | None = None,
     ) -> AsyncIterator[T]:
+        if self._sparql_endpoint.graph is not None:
+            msg = "Response streaming is currently not supported for rdflib.Graph targets."
+            raise NotImplementedError(msg)
+
         query_type: SPARQLQueryTypeLiteral = _get_query_type(query=query)
 
         params: SPARQLOperationParameters = QueryOperationParametersConstructor(
@@ -346,7 +393,7 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         async with self._client_manager.acontext() as aclient:
             async with aclient.stream(
                 method=params.method,
-                url=self._sparql_endpoint,  # type: ignore
+                url=self._sparql_endpoint.url,
                 content=params.content,
                 data=params.data,
                 headers=params.headers,
@@ -389,7 +436,7 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         named_graph_uri: RequestDataValue = None,
     ) -> Iterator[httpx.Response | list[SPARQLResultBinding] | Graph | bool]:
         query_component = SPARQLWrapper(
-            sparql_endpoint=self._sparql_endpoint,
+            sparql_endpoint=self._sparql_endpoint._endpoint,
             aclient=self._client_manager.aclient,
             query_method=self._query_method,  # pyright: ignore
         )
@@ -429,10 +476,25 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
             using_named_graph_uri=using_named_graph_uri,
         ).get_params(method=self._update_method)  # pyright: ignore
 
-        with self._client_manager.context() as client:
+        client_context: AbstractContextManager[httpx.Client] = (
+            self._client_manager.context()
+            if (graph := self._update_endpoint.graph) is None
+            else httpx.Client(
+                **self._client_config,
+                transport=RDFLibUpdateTransport(
+                    update_request=update_request,
+                    graph=graph,
+                    version=version,
+                    using_graph_uri=using_graph_uri,
+                    using_named_graph_uri=using_named_graph_uri,
+                ),
+            )
+        )
+
+        with client_context as client:
             response = client.request(
                 method=params.method,
-                url=self._update_endpoint,  # type: ignore
+                url=self._update_endpoint.url,
                 content=params.content,
                 data=params.data,
                 headers=params.headers,
@@ -455,10 +517,25 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
             using_named_graph_uri=using_named_graph_uri,
         ).get_params(method=self._update_method)  # pyright: ignore
 
-        async with self._client_manager.acontext() as aclient:
+        aclient_context: AbstractAsyncContextManager[httpx.AsyncClient] = (
+            self._client_manager.acontext()
+            if (graph := self._update_endpoint.graph) is None
+            else httpx.AsyncClient(
+                **self._aclient_config,
+                transport=AsyncRDFLibUpdateTransport(
+                    update_request=update_request,
+                    graph=graph,
+                    version=version,
+                    using_graph_uri=using_graph_uri,
+                    using_named_graph_uri=using_named_graph_uri,
+                ),
+            )
+        )
+
+        async with aclient_context as aclient:
             response = await aclient.request(
                 method=params.method,
-                url=self._update_endpoint,  # type: ignore
+                url=self._update_endpoint.url,
                 content=params.content,
                 data=params.data,
                 headers=params.headers,
@@ -475,7 +552,7 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         using_named_graph_uri: RequestDataValue = None,
     ) -> Iterator[httpx.Response]:
         update_component = SPARQLWrapper(
-            update_endpoint=self._update_endpoint,
+            update_endpoint=self._update_endpoint._endpoint,
             aclient=self._client_manager.aclient,
             update_method=self._update_method,  # pyright: ignore
         )
