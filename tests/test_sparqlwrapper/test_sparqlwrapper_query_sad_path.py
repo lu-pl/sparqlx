@@ -58,3 +58,15 @@ def test_sparqlwrapper_parse_exception(param, triplestore):
         SPARQLWrapper(sparql_endpoint=triplestore.sparql_endpoint).query(
             param.invalid_input
         )
+
+
+def test_sparqlwrapper_invalid_config():
+    """Check that SPARQLWrapper init without any endpoint definition fails."""
+
+    msg = (
+        "Invalid SPARQLWrapper configuration: "
+        "at least one of 'sparql_endpoint' or 'update_endpoint' must be set."
+    )
+
+    with pytest.raises(ValueError, match=msg):
+        SPARQLWrapper()
