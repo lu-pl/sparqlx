@@ -1,7 +1,9 @@
 from typing import cast
 
+from rdflib import BNode, Graph
 from rdflib.plugins.sparql import prepareQuery
 from rdflib.plugins.sparql.sparql import Query
+
 from sparqlx.types import SPARQLQuery, SPARQLQueryTypeLiteral, SPARQLResponseFormat
 from sparqlx.utils.converters import _convert_ask, _convert_bindings, _convert_graph
 
@@ -41,3 +43,31 @@ def _get_response_converter(
             raise ValueError(f"Unsupported query type: {query_type}")
 
     return converter
+
+
+class Endpoint:
+    def __init__(self, endpoint: str | Graph | None):
+        self._endpoint = endpoint
+
+    @property
+    def url(self) -> str:
+        match self._endpoint:
+            case str():
+                return self._endpoint
+            case Graph():
+                graph_uri = (
+                    identifier.skolemize()
+                    if isinstance((identifier := self._endpoint.identifier), BNode)
+                    else identifier
+                )
+                return graph_uri
+            case None:
+                raise ValueError(
+                    "Unable to run SPARQL operations: Endpoint is not defined."
+                )
+            case _:  # pragma: no cover
+                assert False, "This should never happen."
+
+    @property
+    def graph(self) -> Graph | None:
+        return self._endpoint if isinstance(self._endpoint, Graph) else None
