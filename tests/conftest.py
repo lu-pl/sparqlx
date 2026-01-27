@@ -4,17 +4,18 @@ from collections.abc import Iterator
 import time
 from typing import Protocol
 
-import httpx
 import pytest
+from rdflib import Dataset, Graph
 
+import httpx
 from testcontainers.core.container import DockerContainer
 from testcontainers.core.waiting_utils import wait_for_logs
 
 
 class _TriplestoreEndpoints(Protocol):
-    sparql_endpoint: str
-    update_endpoint: str
-    graphstore_endpoint: str
+    sparql_endpoint: str | Graph
+    update_endpoint: str | Graph
+    graphstore_endpoint: str | Graph
 
     def __iter__(self) -> Iterator[str]:
         yield from (
@@ -136,7 +137,30 @@ def fuseki_service_with_data(fuseki_service) -> Iterator[FusekiEndpoints]:
         client.post(url=fuseki_service.update_endpoint, data={"update": "drop all"})
 
 
-@pytest.fixture(params=["oxigraph_service", "fuseki_service"])
+class RDFLibGraphEndpoints(_TriplestoreEndpoints):
+    """Data Container for Fuseki SPARQL and Graphstore Endpoints."""
+
+    def __init__(self, graph: Graph | None = None):
+        _graph = Graph() if graph is None else graph
+
+        self.sparql_endpoint = _graph
+        self.update_endpoint = _graph
+        self.graphstore_endpoint = _graph
+
+
+@pytest.fixture(scope="session")
+def rdflib_graph_service() -> RDFLibGraphEndpoints:
+    return RDFLibGraphEndpoints()
+
+
+@pytest.fixture(scope="function")
+def rdflib_graph_service_with_data() -> RDFLibGraphEndpoints:
+    with open("tests/data/test_graphs.trig") as f:
+        graph = Dataset().parse(data=f.read(), format="trig")
+        return RDFLibGraphEndpoints(graph=graph)
+
+
+@pytest.fixture(params=["oxigraph_service", "fuseki_service", "rdflib_graph_service"])
 def triplestore(request) -> _TriplestoreEndpoints:
     return request.getfixturevalue(request.param)
 
