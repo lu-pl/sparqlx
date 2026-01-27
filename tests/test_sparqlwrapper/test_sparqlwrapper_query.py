@@ -8,17 +8,11 @@ import operator
 from typing import NamedTuple
 from typing import Any
 
-import httpx
 import pytest
 from rdflib import BNode, Graph, Literal, URIRef, XSD
 from rdflib.compare import isomorphic
-from sparqlx import SPARQLWrapper
-from sparqlx.utils.operation_parameters import (
-    rdf_response_format_map,
-    sparql_result_response_format_map,
-)
 
-from conftest import FusekiEndpoints
+from conftest import FusekiEndpoints, RDFLibGraphEndpoints
 from data.queries import (
     ask_query_false,
     ask_query_true,
@@ -27,6 +21,12 @@ from data.queries import (
     select_query_bnode,
     select_query_types,
     select_query_xy_values,
+)
+import httpx
+from sparqlx import SPARQLWrapper
+from sparqlx.utils.operation_parameters import (
+    rdf_response_format_map,
+    sparql_result_response_format_map,
 )
 from utils import acall
 
@@ -86,7 +86,10 @@ params = [
 async def test_sparqlwrapper_query(method, query_method, param, triplestore):
     """Run a query with convert=True and compare the result to the expected bindings."""
 
-    endpoint: str = triplestore.sparql_endpoint
+    if isinstance(triplestore, RDFLibGraphEndpoints) and param.query == ask_query_false:
+        pytest.skip(reason="Bug in RDFLib, ask_query_false returns True.")
+
+    endpoint = triplestore.sparql_endpoint
     sparqlwrapper = SPARQLWrapper(sparql_endpoint=endpoint, query_method=query_method)
 
     result_converted = await acall(
@@ -96,6 +99,7 @@ async def test_sparqlwrapper_query(method, query_method, param, triplestore):
     assert param.compare(result_converted, param.expected)
 
 
+#### ask queries and tsv failing for rdflib.Graph
 @pytest.mark.parametrize("method", ["query", "aquery"])
 @pytest.mark.parametrize("query_method", ["GET", "POST", "POST-direct"])
 @pytest.mark.parametrize(
@@ -122,7 +126,13 @@ async def test_sparqlwrapper_query_binding_result_formats(
 ):
     """Run SELECT and ASK queries with bindings result formats."""
 
-    endpoint: str = triplestore.sparql_endpoint
+    if isinstance(triplestore, RDFLibGraphEndpoints):
+        if query == ask_query_false:
+            pytest.skip(reason="Bug in RDFLib, ask_query_false returns True.")
+        if response_format in ["csv", "tsv"]:
+            pytest.skip(reason="CSV/TSV is not well supported in rdflib.Graph.query.")
+
+    endpoint = triplestore.sparql_endpoint
     sparqlwrapper = SPARQLWrapper(sparql_endpoint=endpoint, query_method=query_method)
 
     result = await acall(
@@ -159,7 +169,7 @@ async def test_sparqlwrapper_query_graph_result_formats(
             reason="Fuseki currently only handles 'text/xml', not 'application/rdf+xml."
         )
 
-    endpoint: str = triplestore_with_data.sparql_endpoint
+    endpoint = triplestore_with_data.sparql_endpoint
     sparqlwrapper = SPARQLWrapper(sparql_endpoint=endpoint, query_method=query_method)
 
     result = await acall(
@@ -182,7 +192,10 @@ async def test_sparqlwrapper_query_graph_result_formats(
 @pytest.mark.asyncio
 async def test_sparqlwrapper_warn_open_client(triplestore, query_method):
     """Pass a client/aclient and check if a warning is emitted."""
-    endpoint: str = triplestore.sparql_endpoint
+    if isinstance(triplestore, RDFLibGraphEndpoints):
+        pytest.skip(reason="Client sharing is not supported for rdflib.Graph targets.")
+
+    endpoint = triplestore.sparql_endpoint
 
     client = httpx.Client()
     aclient = httpx.AsyncClient()
@@ -224,7 +237,7 @@ async def test_sparql_wrapper_context_managers(query, query_method, triplestore)
 
     The tests assert that client/aclient is open within a context
     and is closed after leaving the context."""
-    endpoint: str = triplestore.sparql_endpoint
+    endpoint = triplestore.sparql_endpoint
 
     client = httpx.Client()
     aclient = httpx.AsyncClient()
@@ -266,7 +279,13 @@ async def test_sparql_wrapper_context_managers(query, query_method, triplestore)
 @pytest.mark.asyncio
 async def test_sparqlwrapper_streaming(query_method, query, triplestore):
     """Sync/async stream a response and compare lists of chunks."""
-    endpoint: str = triplestore.sparql_endpoint
+
+    if isinstance(triplestore, RDFLibGraphEndpoints):
+        pytest.skip(
+            reason="Response streaming is currently not supported for rdflib.Graph targets."
+        )
+
+    endpoint = triplestore.sparql_endpoint
     sparqlwrapper = SPARQLWrapper(sparql_endpoint=endpoint, query_method=query_method)
 
     stream = sparqlwrapper.query_stream(query, chunk_size=1)
@@ -290,7 +309,7 @@ async def test_sparqlwrapper_streaming(query_method, query, triplestore):
     ],
 )
 def test_sparqlwrapper_queries(query_method, query, triplestore):
-    endpoint: str = triplestore.sparql_endpoint
+    endpoint = triplestore.sparql_endpoint
     sparqlwrapper = SPARQLWrapper(sparql_endpoint=endpoint, query_method=query_method)
 
     queries: list[str] = [query for _ in range(5)]
