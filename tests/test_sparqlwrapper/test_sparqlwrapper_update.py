@@ -2,11 +2,11 @@
 
 from typing import NamedTuple
 
-import httpx
 import pytest
-from rdflib import URIRef
-from sparqlx import SPARQLWrapper
+from rdflib import Dataset, Graph, URIRef
 
+import httpx
+from sparqlx import SPARQLWrapper
 from utils import acall, sparql_result_set_equal
 
 
@@ -164,3 +164,48 @@ def test_sparqlwrapper_updates(update_method, fuseki_service):
 
     assert all(_result in expected for _result in result)
     assert all(_expected in result for _expected in expected)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("method", ["update", "aupdate"])
+async def test_sparqlwrapper_update_graph_target(method):
+    graph = Graph()
+    sparqlwrapper = SPARQLWrapper(sparql_endpoint=graph, update_endpoint=graph)
+
+    assert sparqlwrapper.query("select * where {?s ?p ?o}", convert=True) == []
+
+    await acall(
+        sparqlwrapper, method, update_request="insert data {<urn:s> <urn:p> <urn:o>}"
+    )
+
+    assert sparqlwrapper.query("select * where {?s ?p ?o}", convert=True) == [
+        {"s": URIRef("urn:s"), "p": URIRef("urn:p"), "o": URIRef("urn:o")}
+    ]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("method", ["update", "aupdate"])
+async def test_sparqlwrapper_update_dataset_target(method):
+    dataset = Dataset()
+    sparqlwrapper = SPARQLWrapper(sparql_endpoint=dataset, update_endpoint=dataset)
+
+    assert (
+        sparqlwrapper.query("select * where {graph ?g {?s ?p ?o}}", convert=True) == []
+    )
+
+    await acall(
+        sparqlwrapper,
+        method,
+        update_request="insert data {graph <urn:g> {<urn:s> <urn:p> <urn:o>}}",
+    )
+
+    assert sparqlwrapper.query(
+        "select * where {graph ?g {?s ?p ?o}}", convert=True
+    ) == [
+        {
+            "g": URIRef("urn:g"),
+            "s": URIRef("urn:s"),
+            "p": URIRef("urn:p"),
+            "o": URIRef("urn:o"),
+        }
+    ]

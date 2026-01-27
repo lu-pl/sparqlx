@@ -3,10 +3,10 @@
 from typing import NamedTuple
 
 import pytest
-from sparqlx import SPARQLParseException, SPARQLWrapper
-from sparqlx.utils.operation_parameters import sparql_result_response_format_map
 
 from data.queries import ask_query_false, ask_query_true, select_query_xy_values
+from sparqlx import SPARQLParseException, SPARQLWrapper
+from sparqlx.utils.operation_parameters import sparql_result_response_format_map
 
 
 @pytest.mark.parametrize(
@@ -70,3 +70,26 @@ def test_sparqlwrapper_invalid_config():
 
     with pytest.raises(ValueError, match=msg):
         SPARQLWrapper()
+
+
+def test_sparqlwrapper_no_endpoints():
+    fail_msg = (
+        "Invalid SPARQLWrapper configuration: "
+        "at least one of 'sparql_endpoint' or 'update_endpoint' must be set."
+    )
+
+    with pytest.raises(ValueError, match=fail_msg):
+        SPARQLWrapper()
+
+
+def test_sparqlwrapper_undefined_endpoints():
+    fail_msg = "Unable to run SPARQL operations: Endpoint is not defined."
+
+    sparqlwrapper_query = SPARQLWrapper(update_endpoint="...")
+    sparqlwrapper_update = SPARQLWrapper(sparql_endpoint="...")
+
+    with pytest.raises(ValueError, match=fail_msg):
+        sparqlwrapper_query.query("select * where {?s ?p ?o}")
+
+    with pytest.raises(ValueError, match=fail_msg):
+        sparqlwrapper_update.update("insert data {<urn:s> <urn:p> <urn:o>}")
