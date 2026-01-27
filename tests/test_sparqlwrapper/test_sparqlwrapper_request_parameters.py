@@ -2,6 +2,7 @@ from typing import NamedTuple
 
 import pytest
 
+from conftest import RDFLibGraphEndpoints
 from sparqlx import SPARQLWrapper
 from utils import parse_response_qs
 
@@ -130,6 +131,9 @@ update_request_params = [
 
 @pytest.mark.parametrize("param", query_request_params)
 def test_sparqlwrapper_query_request_params(param, triplestore):
+    if isinstance(triplestore, RDFLibGraphEndpoints):
+        pytest.skip(reason="SPARQL Protocol parameters currently not implemented.")
+
     sparqlwrapper = SPARQLWrapper(sparql_endpoint=triplestore.sparql_endpoint)
     response = sparqlwrapper.query("select * where {?s ?p ?o}", **param.kwargs)
 
@@ -138,6 +142,9 @@ def test_sparqlwrapper_query_request_params(param, triplestore):
 
 @pytest.mark.parametrize("param", update_request_params)
 def test_sparqlwrapper_update_request_params(param, triplestore):
+    if isinstance(triplestore, RDFLibGraphEndpoints):
+        pytest.skip(reason="SPARQL Protocol parameters currently not implemented.")
+
     sparqlwrapper = SPARQLWrapper(update_endpoint=triplestore.update_endpoint)
     response = sparqlwrapper.update("insert data {}", **param.kwargs)
 
