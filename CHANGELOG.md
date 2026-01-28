@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.8.0](https://github.com/lu-pl/sparqlx/compare/v0.7.0...v0.8.0) (2026-01-28)
+
+
+### ⚠ BREAKING CHANGES
+
+* make SPARQLWrapper configuration attribues private
+
+### Features
+
+* implement httpx.Transport Facades ([ed0a8b9](https://github.com/lu-pl/sparqlx/commit/ed0a8b934a7d1cd4b4c2bde6c0ad5a8b874e758e))
+* implement rdflib.Graph targets ([433ed6b](https://github.com/lu-pl/sparqlx/commit/433ed6b43a2a740be497cb2da4de509c522e7a07))
+* reject invalid SPARQLWrapper config on initialization ([cf03808](https://github.com/lu-pl/sparqlx/commit/cf03808b4a742e18a2a0f8e7031d2e257ded09c9))
+
+
+### Miscellaneous Chores
+
+* make SPARQLWrapper configuration attribues private ([5819c8d](https://github.com/lu-pl/sparqlx/commit/5819c8d93ac3cda51b5855c5f64585c52b6a6aeb))
+
 ## [0.7.0](https://github.com/lu-pl/sparqlx/compare/v0.6.1...v0.7.0) (2025-12-28)
 
 
