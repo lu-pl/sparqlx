@@ -6,13 +6,13 @@ from contextlib import AbstractAsyncContextManager, AbstractContextManager
 import functools
 from typing import Literal as TLiteral, Self, overload
 
-from rdflib import Graph
-
 import httpx
+from rdflib import Dataset, Graph
 from sparqlx.types import (
     AskQuery,
     ConstructQuery,
     DescribeQuery,
+    RDFParseSource,
     RequestDataValue,
     SPARQLQuery,
     SPARQLQueryTypeLiteral,
@@ -73,6 +73,25 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
             aclient=aclient,
             aclient_config=aclient_config,
         )
+
+    @classmethod
+    def from_rdf_source(cls, rdf_source: RDFParseSource | Graph, **kwargs) -> Self:
+        """Alternative constructor for instantiating a SPARQLWrapper from an RDF source.
+
+        The constructor instantiates a sparqlx.SPARQLWrapper with an rdflib.Graph target;
+        the target for both sparql_endpoint and update_endpoint will be either an rdflib.Dataset
+        obtained by parsing an RDFParseSource or an rdflib.Graph object passed to the constructor.
+
+        kwargs are forwarded to the sparqlx.SPARQLWrapper initializer.
+        """
+
+        graph: Graph = (
+            rdf_source
+            if isinstance(rdf_source, Graph)
+            else Dataset().parse(source=rdf_source)
+        )
+
+        return cls(sparql_endpoint=graph, update_endpoint=graph, **kwargs)
 
     def __enter__(self) -> Self:
         self._client_manager._client = self._client_manager.client
