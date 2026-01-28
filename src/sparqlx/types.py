@@ -2,11 +2,14 @@
 
 import datetime
 import decimal
+from pathlib import PurePath
+from typing import IO, TextIO
 from typing import Literal as PyLiteral
 from xml.dom.minidom import Document
 
 from rdflib import BNode, Literal, URIRef
 from rdflib.compat import long_type
+from rdflib.parser import InputSource
 from rdflib.xsd_datetime import Duration
 
 
@@ -25,8 +28,14 @@ __all__ = (
     "DescribeQuery",
     "SPARQLQuery",
     "SPARQLQueryTypeLiteral",
+    "RDFParseSource",
 )
 
+type RDFParseSource = IO[bytes] | TextIO | InputSource | str | bytes | PurePath
+"""Source parameter type for rdflib.Graph.parse.
+
+This is the exact union type as defined in RDFLib.
+"""
 
 type RequestDataValue = str | list[str] | tuple[str, ...] | None
 """Value type for httpx.RequestValue type.
