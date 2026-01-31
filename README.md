@@ -340,6 +340,7 @@ The feature essentially treats `rdflib.Graph` as a SPARQL endpoint i.e. SPARQL o
 #### RDF Source Constructor
 
 The `SPARQLWrapper` class features an alternative constructor, `sparqlx.SPARQLWrapper.from_rdf_source`, that, given a `sparqlx.types.RDFParseSource`, parses the RDF source into an `rdflib.Graph` and returns a `SPARQLWrapper` instance targeting that graph object.
+kwargs are forwarded to the rdflib.Graph.parse methods.
 
 ```python
 from sparqlx import SPARQLWrapper
