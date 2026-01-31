@@ -75,23 +75,29 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         )
 
     @classmethod
-    def from_rdf_source(cls, rdf_source: RDFParseSource | Graph, **kwargs) -> Self:
+    def from_rdf_source(
+        cls, rdf_source: RDFParseSource | Graph, **parse_kwargs
+    ) -> Self:
         """Alternative constructor for instantiating a SPARQLWrapper from an RDF source.
 
         The constructor instantiates a sparqlx.SPARQLWrapper with an rdflib.Graph target;
         the target for both sparql_endpoint and update_endpoint will be either an rdflib.Dataset
         obtained by parsing an RDFParseSource or an rdflib.Graph object passed to the constructor.
 
-        kwargs are forwarded to the sparqlx.SPARQLWrapper initializer.
+        kwargs are forwarded to the rdflib.Graph.parse methods.
+
+        Note that the constructor does not allow to exert control over the constructed SPARQLWrapper;
+        the SPARQLWrapper config concerns HTTP targets (clients, client configs and HTTP methods)
+        and are effectively meaningless for rdflib.Graph targets.
         """
 
         graph: Graph = (
             rdf_source
             if isinstance(rdf_source, Graph)
-            else Dataset().parse(source=rdf_source)
+            else Dataset().parse(source=rdf_source, **parse_kwargs)
         )
 
-        return cls(sparql_endpoint=graph, update_endpoint=graph, **kwargs)
+        return cls(sparql_endpoint=graph, update_endpoint=graph)
 
     def __enter__(self) -> Self:
         self._client_manager._client = self._client_manager.client
