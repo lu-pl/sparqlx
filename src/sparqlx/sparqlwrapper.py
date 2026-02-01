@@ -227,7 +227,7 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
                 params=params.params,
             )
 
-            if raise_for_status:
+            if convert or raise_for_status:
                 response.raise_for_status()
 
         return response_handler(response=response)
@@ -346,7 +346,7 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
                 params=params.params,
             )
 
-            if raise_for_status:
+            if convert or raise_for_status:
                 response.raise_for_status()
 
         return response_handler(response=response)
