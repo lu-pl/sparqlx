@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.9.0](https://github.com/lu-pl/sparqlx/compare/v0.8.0...v0.9.0) (2026-02-01)
+
+
+### ⚠ BREAKING CHANGES
+
+* forward from_rdf_source kwargs to parsing
+
+### Features
+
+* add `raise_for_status: bool` flag ([aadf2cc](https://github.com/lu-pl/sparqlx/commit/aadf2cc739d78933c91e4d92e18d88ebd1d35d7f))
+* implement a SPARQLWrapper constructor for RDF sources ([948fa94](https://github.com/lu-pl/sparqlx/commit/948fa94398bdc9174efcf8259c750869eef1a740))
+* introduce RDFParseSource type ([b395a95](https://github.com/lu-pl/sparqlx/commit/b395a95e705e88179d55b1f931ca5bd4cbc96cb1))
+
+
+### Bug Fixes
+
+* always raise for status if convert=True ([81ae28e](https://github.com/lu-pl/sparqlx/commit/81ae28eda47431590518a92a68aadcd1fbeb21f6))
+* forward from_rdf_source kwargs to parsing ([ecc312b](https://github.com/lu-pl/sparqlx/commit/ecc312b5ae8e4e1d36977be0e997f44f22d6785f))
+
+
+### Documentation
+
+* add rdflib.Graph target README section ([a70b5b3](https://github.com/lu-pl/sparqlx/commit/a70b5b36fbc85baec352bb47f98841f4adf12acb))
+* update from_rdf_source info with kwargs forwarding info ([a264c14](https://github.com/lu-pl/sparqlx/commit/a264c14a82bc96100245bb7d3c09cec0760d282a))
+
 ## [0.8.0](https://github.com/lu-pl/sparqlx/compare/v0.7.0...v0.8.0) (2026-01-28)
 
 
