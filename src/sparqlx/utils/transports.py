@@ -2,10 +2,9 @@
 
 import asyncio
 
+import httpx
 import pyparsing
 from rdflib import Graph
-
-import httpx
 from sparqlx.types import RequestDataValue, SPARQLQuery
 
 
@@ -41,6 +40,7 @@ class _RDFLibQueryTransportBase:
                 status_code=400,
                 headers={
                     "Content-Type": "text/plain; charset=utf-8",
+                    "Server": "rdflib.Graph",
                 },
                 request=request,
                 content=str(e),
@@ -50,6 +50,7 @@ class _RDFLibQueryTransportBase:
                 status_code=500,
                 headers={
                     "Content-Type": "text/plain; charset=utf-8",
+                    "Server": "rdflib.Graph",
                 },
                 request=request,
                 content=str(e),
@@ -58,7 +59,10 @@ class _RDFLibQueryTransportBase:
         else:
             return httpx.Response(
                 status_code=200,
-                headers={"Content-Type": _format},
+                headers={
+                    "Content-Type": _format,
+                    "Server": "rdflib.Graph",
+                },
                 request=request,
                 content=content,
             )
@@ -102,6 +106,7 @@ class _RDFLibUpdateTransportBase(httpx.BaseTransport):
                 status_code=400,
                 headers={
                     "Content-Type": "text/plain; charset=utf-8",
+                    "Server": "rdflib.Graph",
                 },
                 request=request,
                 content=str(e),
@@ -111,6 +116,7 @@ class _RDFLibUpdateTransportBase(httpx.BaseTransport):
                 status_code=500,
                 headers={
                     "Content-Type": "text/plain; charset=utf-8",
+                    "Server": "rdflib.Graph",
                 },
                 request=request,
                 content=str(e),
@@ -122,6 +128,7 @@ class _RDFLibUpdateTransportBase(httpx.BaseTransport):
                 headers={
                     "Content-Length": "0",
                     "Content-Type": "text/plain; charset=utf-8",
+                    "Server": "rdflib.Graph",
                 },
                 request=request,
                 content=b"",
