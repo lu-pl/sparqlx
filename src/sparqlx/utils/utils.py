@@ -1,9 +1,11 @@
+import asyncio
+from collections.abc import AsyncIterator
+from contextlib import AbstractContextManager, asynccontextmanager
 from typing import cast
 
 from rdflib import BNode, Graph
 from rdflib.plugins.sparql import prepareQuery
 from rdflib.plugins.sparql.sparql import Query
-
 from sparqlx.types import SPARQLQuery, SPARQLQueryTypeLiteral, SPARQLResponseFormat
 from sparqlx.utils.converters import _convert_ask, _convert_bindings, _convert_graph
 
@@ -71,3 +73,16 @@ class Endpoint:
     @property
     def graph(self) -> Graph | None:
         return self._endpoint if isinstance(self._endpoint, Graph) else None
+
+
+@asynccontextmanager
+async def as_async_context[T](sync_cm: AbstractContextManager[T]) -> AsyncIterator[T]:
+    """Async context wrapper around a sync context manager.
+
+    The async context manager allows to call a sync context manager
+    from an async context statement. This workaround is mentioned in PEP 806,
+    see https://peps.python.org/pep-0806/#workaround-an-as-acm-wrapper.
+    """
+    with sync_cm as result:
+        await asyncio.sleep(0)
+        yield result
