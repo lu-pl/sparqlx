@@ -5,6 +5,7 @@ from collections.abc import AsyncIterator, Callable, Iterator
 from contextlib import AbstractAsyncContextManager, AbstractContextManager
 import functools
 from typing import Literal as TLiteral, Self, overload
+import warnings
 
 import httpx
 from rdflib import Dataset, Graph
@@ -32,7 +33,12 @@ from sparqlx.utils.transports import (
     RDFLibQueryTransport,
     RDFLibUpdateTransport,
 )
-from sparqlx.utils.utils import Endpoint, _get_query_type, _get_response_converter
+from sparqlx.utils.utils import (
+    Endpoint,
+    _get_query_type,
+    _get_response_converter,
+    as_async_context,
+)
 
 
 class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
@@ -486,7 +492,21 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         )
 
         async def _runner() -> Iterator[httpx.Response]:
-            async with query_component, asyncio.TaskGroup() as tg:
+            acatch_warnings: AbstractAsyncContextManager[None] = as_async_context(
+                warnings.catch_warnings()
+            )
+
+            async with (
+                acatch_warnings,
+                query_component,
+                asyncio.TaskGroup() as tg,
+            ):
+                warnings.filterwarnings(
+                    action="ignore",
+                    category=UserWarning,
+                    module="sparqlx.utils.client_manager",
+                )
+
                 tasks = [
                     tg.create_task(
                         query_component.aquery(
