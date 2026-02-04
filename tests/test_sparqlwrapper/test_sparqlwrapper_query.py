@@ -7,10 +7,17 @@ from decimal import Decimal
 import operator
 from typing import NamedTuple
 from typing import Any
+import warnings
 
+import httpx
 import pytest
 from rdflib import BNode, Graph, Literal, URIRef, XSD
 from rdflib.compare import isomorphic
+from sparqlx import SPARQLWrapper
+from sparqlx.utils.operation_parameters import (
+    rdf_response_format_map,
+    sparql_result_response_format_map,
+)
 
 from conftest import FusekiEndpoints, RDFLibGraphEndpoints
 from data.queries import (
@@ -21,12 +28,6 @@ from data.queries import (
     select_query_bnode,
     select_query_types,
     select_query_xy_values,
-)
-import httpx
-from sparqlx import SPARQLWrapper
-from sparqlx.utils.operation_parameters import (
-    rdf_response_format_map,
-    sparql_result_response_format_map,
 )
 from utils import acall
 
@@ -309,12 +310,23 @@ async def test_sparqlwrapper_streaming(query_method, query, triplestore):
     ],
 )
 def test_sparqlwrapper_queries(query_method, query, triplestore):
+    """Compare the results of SPARQLWrapper.queries and manually running SPARQLWrapper.aquery.
+
+    The test also checks that no client manager warnings are emitted
+    from SPARQLWrapper.queries. This is achieved by locally setting
+    the warnings filter to raise an error for all warnings;
+    i.e. if no warning is emitted, the test passes because no exceptions
+    are raised from any warning.
+    """
+
     endpoint = triplestore.sparql_endpoint
     sparqlwrapper = SPARQLWrapper(sparql_endpoint=endpoint, query_method=query_method)
 
     queries: list[str] = [query for _ in range(5)]
 
-    results_queries = sparqlwrapper.queries(*queries)
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        results_queries = sparqlwrapper.queries(*queries)
 
     async def _runner():
         async with asyncio.TaskGroup() as tg:
