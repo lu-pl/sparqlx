@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.10.0](https://github.com/lu-pl/sparqlx/compare/v0.9.0...v0.10.0) (2026-02-09)
+
+
+### Features
+
+* add `Server` to HTTP response headers for rdflib.Graph targets ([f8a14f5](https://github.com/lu-pl/sparqlx/commit/f8a14f57686afe359770f5f5ff7c09caba0b3460))
+* suppress open client warnings in SPARQLWrapper.queries ([aae15c2](https://github.com/lu-pl/sparqlx/commit/aae15c260af46a52db708a08fea7d74be8aea2c1))
+
+
+### Documentation
+
+* add docs section on SPARQL result conversion ([0edc822](https://github.com/lu-pl/sparqlx/commit/0edc822b14faf96fd7394818e5cba59ed60d5181))
+* introduce docs folder and move SPARQL Protocol docs ([22fafea](https://github.com/lu-pl/sparqlx/commit/22fafea4e4fcf4bf420230beaa6739d6dbee7497))
+* move Recipes and Graph target docs to docs folder ([f9997ba](https://github.com/lu-pl/sparqlx/commit/f9997ba23ff776b0ca8f6beef47333f33bfea91d))
+
 ## [0.9.0](https://github.com/lu-pl/sparqlx/compare/v0.8.0...v0.9.0) (2026-02-01)
 
 
