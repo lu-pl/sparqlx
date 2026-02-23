@@ -25,8 +25,9 @@ def _convert_bindings(
     def _get_binding_pairs(binding) -> Iterator[tuple[str, SPARQLResultBindingValue]]:
         """Generate key value pairs from response_bindings.
 
-        The 'type' and 'datatype' fields of the JSON response
+        The 'type', 'datatype' and 'xml:lang' fields of the JSON response
         are examined to cast values to Python types according to RDFLib.
+        Lang-tagged literals are returned as rdflib.Literals.
         """
         for var in variables:
             if (binding_data := binding.get(var, None)) is None:
@@ -40,10 +41,14 @@ def _convert_bindings(
                     literal = Literal(
                         binding_data["value"],
                         datatype=binding_data.get("datatype", None),
+                        lang=binding_data.get("xml:lang", None),
                     )
 
-                    literal_to_python = literal.toPython()
-                    yield (var, literal_to_python)
+                    yield (
+                        (var, literal.toPython())
+                        if literal.language is None
+                        else (var, literal)
+                    )
 
                 case "bnode":
                     yield (var, BNode(binding_data["value"]))

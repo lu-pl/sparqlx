@@ -78,7 +78,7 @@ Return type provenance:
 """
 
 
-type SPARQLResultBindingValue = URIRef | BNode | LiteralToPython
+type SPARQLResultBindingValue = URIRef | BNode | Literal | LiteralToPython
 "Return type for SPARQLWrapper result mapping values."
 
 type SPARQLResultBinding = dict[str, SPARQLResultBindingValue]
