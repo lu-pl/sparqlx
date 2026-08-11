@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.1](https://github.com/lu-pl/sparqlx/compare/v0.10.0...v0.10.1) (2026-08-11)
+
+
+### Bug Fixes
+
+* hardcode oxigraph container to 0.5.7 ([b226202](https://github.com/lu-pl/sparqlx/commit/b226202236288666cfc3dea17c94bfdb67826fb2))
+
 ## [0.10.0](https://github.com/lu-pl/sparqlx/compare/v0.9.0...v0.10.0) (2026-02-09)
 
 
