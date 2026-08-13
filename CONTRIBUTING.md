@@ -18,7 +18,7 @@ Please read these guidelines before opening Issues or Pull Requests.
 
 ## Vision
 
-`sparqlx` aims to be a modern Sync/Async SPARQL 1.2 Protocol client based on `httpx`.
+`sparqlx` aims to be a modern Sync/Async SPARQL 1.2 Protocol client based on `httpx2`.
 
 The library should be as simple as possible but no simpler.
 
