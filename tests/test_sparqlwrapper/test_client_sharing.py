@@ -1,6 +1,7 @@
-"""Pytest entry point for SPARQLWrapper httpx client sharing."""
+"""Pytest entry point for SPARQLWrapper httpx2 client sharing."""
 
-import httpx
+import httpx2
+
 from sparqlx import SPARQLWrapper
 
 
@@ -8,8 +9,8 @@ def test_client_identity():
     """Check the client attribute of a SPARQLOperationWrapper for supplied/managed client."""
     sparqlwrapper = SPARQLWrapper(sparql_endpoint="https://some.endpoint")
 
-    client = httpx.Client()
-    aclient = httpx.AsyncClient()
+    client = httpx2.Client()
+    aclient = httpx2.AsyncClient()
     sparqlwrapper_with_client = SPARQLWrapper(
         sparql_endpoint="https://some.endpoint", client=client, aclient=aclient
     )
@@ -17,8 +18,8 @@ def test_client_identity():
     assert sparqlwrapper._client_manager._client is None
     assert sparqlwrapper._client_manager._aclient is None
 
-    assert isinstance(sparqlwrapper._client_manager.client, httpx.Client)
-    assert isinstance(sparqlwrapper._client_manager.aclient, httpx.AsyncClient)
+    assert isinstance(sparqlwrapper._client_manager.client, httpx2.Client)
+    assert isinstance(sparqlwrapper._client_manager.aclient, httpx2.AsyncClient)
 
     assert sparqlwrapper_with_client._client_manager.client is client
     assert sparqlwrapper_with_client._client_manager.aclient is aclient
@@ -29,7 +30,7 @@ def test_client_identity():
 
 def test_shared_client():
     """Check client identity and closed-status for a shared client."""
-    client = httpx.Client()
+    client = httpx2.Client()
 
     sparqlwrapper_1 = SPARQLWrapper(
         sparql_endpoint="https://some.endpoint", client=client
@@ -79,7 +80,7 @@ def test_managed_context_client():
 
     with sparqlwrapper as wrapper_context:
         assert sparqlwrapper is wrapper_context
-        assert isinstance(wrapper_context._client_manager.client, httpx.Client)
+        assert isinstance(wrapper_context._client_manager.client, httpx2.Client)
 
         context_client = wrapper_context._client_manager._client
         context_client_property = wrapper_context._client_manager.client
@@ -92,7 +93,7 @@ def test_managed_context_client():
 
 def test_shared_context_client():
     """Check shard client status is a SPARQLOperationWrapper context."""
-    client = httpx.Client()
+    client = httpx2.Client()
 
     sparqlwrapper = SPARQLWrapper(sparql_endpoint="https://some.endoint", client=client)
     assert sparqlwrapper._client_manager._client is client

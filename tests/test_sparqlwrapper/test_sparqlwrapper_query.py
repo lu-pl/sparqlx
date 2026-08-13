@@ -1,24 +1,15 @@
 """Pytest entry point for basic SPARQLWrapper Query Operation tests."""
 
 import asyncio
-from collections.abc import Callable
 import datetime
-from decimal import Decimal
 import operator
-from typing import NamedTuple
-from typing import Any
 import warnings
+from collections.abc import Callable
+from decimal import Decimal
+from typing import Any, NamedTuple
 
-import httpx
+import httpx2
 import pytest
-from rdflib import BNode, Graph, Literal, URIRef, XSD
-from rdflib.compare import isomorphic
-from sparqlx import SPARQLWrapper
-from sparqlx.utils.operation_parameters import (
-    rdf_response_format_map,
-    sparql_result_response_format_map,
-)
-
 from conftest import FusekiEndpoints, RDFLibGraphEndpoints
 from data.queries import (
     ask_query_false,
@@ -29,7 +20,15 @@ from data.queries import (
     select_query_types,
     select_query_xy_values,
 )
+from rdflib import XSD, BNode, Graph, Literal, URIRef
+from rdflib.compare import isomorphic
 from utils import acall
+
+from sparqlx import SPARQLWrapper
+from sparqlx.utils.operation_parameters import (
+    rdf_response_format_map,
+    sparql_result_response_format_map,
+)
 
 
 class QueryOperationParameter(NamedTuple):
@@ -198,8 +197,8 @@ async def test_sparqlwrapper_warn_open_client(triplestore, query_method):
 
     endpoint = triplestore.sparql_endpoint
 
-    client = httpx.Client()
-    aclient = httpx.AsyncClient()
+    client = httpx2.Client()
+    aclient = httpx2.AsyncClient()
 
     sparqlwrapper = SPARQLWrapper(
         sparql_endpoint=endpoint,
@@ -210,7 +209,7 @@ async def test_sparqlwrapper_warn_open_client(triplestore, query_method):
 
     def _get_msg(client):
         return (
-            f"httpx Client instance '{client}' is not managed. "
+            f"httpx2 Client instance '{client}' is not managed. "
             "Client.close/AsyncClient.aclose should be called at some point."
         )
 
@@ -240,8 +239,8 @@ async def test_sparql_wrapper_context_managers(query, query_method, triplestore)
     and is closed after leaving the context."""
     endpoint = triplestore.sparql_endpoint
 
-    client = httpx.Client()
-    aclient = httpx.AsyncClient()
+    client = httpx2.Client()
+    aclient = httpx2.AsyncClient()
 
     sparqlwrapper = SPARQLWrapper(
         sparql_endpoint=endpoint,

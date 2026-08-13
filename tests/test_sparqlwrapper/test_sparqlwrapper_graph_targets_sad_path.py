@@ -1,11 +1,11 @@
 """Pytest entry point for sad paths tests of SPARQLWrapper with rdflib.Graph targets."""
 
-import httpx
+import httpx2
 import pytest
 from rdflib import Dataset, Graph
-from sparqlx import SPARQLWrapper
-
 from utils import acall
+
+from sparqlx import SPARQLWrapper
 
 
 @pytest.mark.parametrize("graph", [Graph(), Dataset()])
@@ -83,13 +83,13 @@ def test_sparqlwrapper_graph_target_http_500():
     partial_fail_msg_500 = "Server error '500 Internal Server Error'"
     partial_fail_msg_400 = "Client error '400 Bad Request'"
 
-    with pytest.raises(httpx.HTTPStatusError, match=partial_fail_msg_500):
+    with pytest.raises(httpx2.HTTPStatusError, match=partial_fail_msg_500):
         sparqlwrapper.query("select * where {graph ?g {?s ?p ?o}}")
 
-    with pytest.raises(httpx.HTTPStatusError, match=partial_fail_msg_500):
+    with pytest.raises(httpx2.HTTPStatusError, match=partial_fail_msg_500):
         sparqlwrapper.update(
             "insert {graph ?g {<urn:s> <urn:p> <urn:o>}} where {graph ?g {?s ?p ?o}}"
         )
 
-    with pytest.raises(httpx.HTTPStatusError, match=partial_fail_msg_400):
+    with pytest.raises(httpx2.HTTPStatusError, match=partial_fail_msg_400):
         sparqlwrapper.update("invalid SPARQL")

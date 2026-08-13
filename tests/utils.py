@@ -6,11 +6,12 @@ from contextlib import AbstractContextManager, asynccontextmanager
 from typing import Any
 from urllib.parse import parse_qs
 
-import httpx
+import httpx2
+
 from sparqlx.types import SPARQLResultBinding, SPARQLResultBindingValue
 
 
-def parse_response_qs(response: httpx.Response) -> dict[str, list]:
+def parse_response_qs(response: httpx2.Response) -> dict[str, list]:
     content = response.request.content.decode("utf-8")
     return parse_qs(content)
 
