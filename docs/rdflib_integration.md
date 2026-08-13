@@ -131,17 +131,17 @@ A generally interesting case: Join Identity/Annihilator.
 Apart from targeting remote SPARQL query and update endpoints, `SPARQLWrapper` also supports running SPARQL operations against `rdflib.Graph` objects.
 
 ```python
-import httpx
+import httpx2
 from rdflib import Graph
 from sparqlx import SPARQLWrapper
 
 query = "select ?x ?y where {values (?x ?y) {(1 2) (3 4)}}"
 sparql_wrapper = SPARQLWrapper(sparql_endpoint=Graph())
 
-result: httpx.Response = sparql_wrapper.query(query)
+result: httpx2.Response = sparql_wrapper.query(query)
 ```
 
-The feature essentially treats `rdflib.Graph` as a SPARQL endpoint i.e. SPARQL operations are delegated to an in-memory graph object using a custom transport that builds and returns an `httpx.Response`.
+The feature essentially treats `rdflib.Graph` as a SPARQL endpoint i.e. SPARQL operations are delegated to an in-memory graph object using a custom transport that builds and returns an `httpx2.Response`.
 
 > Note that response streaming is currently not supported for `rdflib.Graph` targets.
 

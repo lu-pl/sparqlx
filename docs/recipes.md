@@ -55,7 +55,7 @@ from collections.abc import Iterator
 from itertools import chain, islice
 from typing import cast
 
-import httpx
+import httpx2
 from rdflib import Graph
 from sparqlx import SPARQLWrapper
 
@@ -77,7 +77,7 @@ sparql_wrapper = SPARQLWrapper(sparql_endpoint=releven_sparql_endpoint)
 graph_result_stream: Iterator[bytes] = sparql_wrapper.query_stream(
 	query="construct {?s ?p ?o} where {?s ?p ?o} limit 100000",
 	response_format="ntriples",
-	streaming_method=httpx.Response.iter_lines,
+	streaming_method=httpx2.Response.iter_lines,
 )
 
 def graph_result_iterator(size: int = 1000) -> Iterator[Graph]:
