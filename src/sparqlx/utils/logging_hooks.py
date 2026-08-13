@@ -1,8 +1,7 @@
 import json
 import logging
 
-import httpx
-
+import httpx2
 
 logger = logging.getLogger(__name__)
 
@@ -22,11 +21,11 @@ class StructuredMessage:
         return "%s >>> %s" % (self.message, json.dumps(self.kwargs, default=str))
 
 
-def log_request(request: httpx.Request) -> None:
-    """Logging event hook for httpx.Requests.
+def log_request(request: httpx2.Request) -> None:
+    """Logging event hook for httpx2.Requests.
 
-    See httpx Event Hooks:
-    https://www.python-httpx.org/advanced/event-hooks/
+    See httpx2 Event Hooks:
+    https://httpx2.pydantic.dev/advanced/event-hooks/
     """
     info_message = StructuredMessage(
         "Request",
@@ -46,11 +45,11 @@ def log_request(request: httpx.Request) -> None:
     logger.debug(debug_message)
 
 
-def log_response(response: httpx.Response) -> None:
-    """Logging event hook for httpx.Responses.
+def log_response(response: httpx2.Response) -> None:
+    """Logging event hook for httpx2.Responses.
 
-    See httpx Event Hooks:
-    https://www.python-httpx.org/advanced/event-hooks/
+    See httpx2 Event Hooks:
+    https://httpx2.pydantic.dev/advanced/event-hooks/
     """
 
     info_message = StructuredMessage(
@@ -71,9 +70,9 @@ def log_response(response: httpx.Response) -> None:
     logger.debug(debug_message)
 
 
-async def alog_request(request: httpx.Request) -> None:
+async def alog_request(request: httpx2.Request) -> None:
     log_request(request=request)
 
 
-async def alog_response(response: httpx.Response) -> None:
+async def alog_response(response: httpx2.Response) -> None:
     log_response(response=response)
