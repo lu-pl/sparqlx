@@ -6,7 +6,7 @@
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
 
-Python library for [httpx](https://www.python-httpx.org/)-based SPARQL Query and Update Operations according to the [SPARQL 1.2 Protocol](https://www.w3.org/TR/sparql12-protocol/).
+Python library for [httpx2](https://github.com/pydantic/httpx2)-based SPARQL Query and Update Operations according to the [SPARQL 1.2 Protocol](https://www.w3.org/TR/sparql12-protocol/).
 
 
 > WARNING: This project is in an early stage of development and should be used with caution.
@@ -18,7 +18,7 @@ Python library for [httpx](https://www.python-httpx.org/)-based SPARQL Query and
 - **Synchronous Concurrency Wrapper**: Support for concurrent execution of multiple queries from synchronous code with `queries()`
 - **RDFLib Integration**: Direct conversion to [RDFLib](https://github.com/RDFLib/rdflib) SPARQL result representations and support for `rdflib.Graph` targets
 - **Context Managers**: Synchronous and asynchronous context managers for lexical resource management
-- **Client Sharing**: Support for sharing and re-using `httpx` clients for HTTP connection pooling
+- **Client Sharing**: Support for sharing and re-using `httpx2` clients for HTTP connection pooling
 
 
 ## Installation
@@ -44,7 +44,7 @@ sparql_wrapper = SPARQLWrapper(
 	sparql_endpoint="https://query.wikidata.org/bigdata/namespace/wdq/sparql"
 )
 
-result: httpx.Response = sparql_wrapper.query("select * where {?s ?p ?o} limit 10")
+result: httpx2.Response = sparql_wrapper.query("select * where {?s ?p ?o} limit 10")
 ```
 
 The default response formats are JSON for `SELECT` and `ASK` queries and Turtle for `CONSTRUCT` and `DESCRIBE` queries.
@@ -99,30 +99,30 @@ reveal_type(result_2)  # rdflib.Graph
 
 #### Client Sharing and Configuration
 
-By default, `SPARQLWrapper` creates and manages `httpx.Client` instances internally.
+By default, `SPARQLWrapper` creates and manages `httpx2.Client` instances internally.
 
-An `httpx.Client` can also be supplied by user code; this provides a configuration interface and allows for HTTP connection pooling.
+An `httpx2.Client` can also be supplied by user code; this provides a configuration interface and allows for HTTP connection pooling.
 
-> Note that if an `httpx.Client` is supplied to `SPARQLWrapper`, user code is responsible for managing (closing) the client.
+> Note that if an `httpx2.Client` is supplied to `SPARQLWrapper`, user code is responsible for managing (closing) the client.
 
 ```python
-import httpx
+import httpx2
 from sparqlx import SPARQLWrapper
 
-client = httpx.Client(timeout=10.0)
+client = httpx2.Client(timeout=10.0)
 
 sparql_wrapper = SPARQLWrapper(
 	sparql_endpoint="https://query.wikidata.org/bigdata/namespace/wdq/sparql", client=client
 )
 
-result: httpx.Response = sparql_wrapper.query("select * where {?s ?p ?o} limit 10")
+result: httpx2.Response = sparql_wrapper.query("select * where {?s ?p ?o} limit 10")
 
 print(client.is_closed)  # False
 client.close()
 print(client.is_closed)  # True
 ```
 
-It is also possible to configure `SPARQLWrapper`-managed clients by passing a `dict` holding `httpx.Client` kwargs to the `client_config` parameter:
+It is also possible to configure `SPARQLWrapper`-managed clients by passing a `dict` holding `httpx2.Client` kwargs to the `client_config` parameter:
 
 ```python
 from sparqlx import SPARQLWrapper
@@ -132,10 +132,10 @@ sparql_wrapper = SPARQLWrapper(
 	client_config={"timeout": 10.0},
 )
 
-result: httpx.Response = sparql_wrapper.query("select * where {?s ?p ?o} limit 10")
+result: httpx2.Response = sparql_wrapper.query("select * where {?s ?p ?o} limit 10")
 ```
 
-In that case, `SPARQLWrapper` will internally create and manage `httpx.Client` instances (the default behavior if no client is provided), but will instantiate clients based on the supplied `client_config` kwargs.
+In that case, `SPARQLWrapper` will internally create and manage `httpx2.Client` instances (the default behavior if no client is provided), but will instantiate clients based on the supplied `client_config` kwargs.
 
 
 ---
@@ -151,15 +151,15 @@ sparql_wrapper = SPARQLWrapper(
 	sparql_endpoint="https://query.wikidata.org/bigdata/namespace/wdq/sparql"
 )
 
-async def run_queries(*queries: str) -> list[httpx.Response]:
+async def run_queries(*queries: str) -> list[httpx2.Response]:
 	return await asyncio.gather(*[sparql_wrapper.aquery(query) for query in queries])
 
-results: list[httpx.Response] = asyncio.run(
+results: list[httpx2.Response] = asyncio.run(
 	run_queries(*["select * where {?s ?p ?o} limit 10" for _ in range(10)])
 )
 ```
 
-For client sharing or configuration of internal client instances, pass an `httpx.AsyncClient` instance to `aclient` or kwargs to `aclient_config` respectively (see `SPARQLWrapper.query`).
+For client sharing or configuration of internal client instances, pass an `httpx2.AsyncClient` instance to `aclient` or kwargs to `aclient_config` respectively (see `SPARQLWrapper.query`).
 
 
 ---
@@ -174,15 +174,15 @@ sparql_wrapper = SPARQLWrapper(
 	sparql_endpoint="https://query.wikidata.org/bigdata/namespace/wdq/sparql"
 )
 
-results: Iterator[httpx.Response] = sparql_wrapper.queries(
+results: Iterator[httpx2.Response] = sparql_wrapper.queries(
 	*["select * where {?s ?p ?o} limit 100" for _ in range(10)]
 )
 ```
 
-Note that since `SPARQLWrapper.queries` runs async code under the hood, httpx client sharing or configuration requires setting `aclient` or `aclient_config` in the respective `SPARQLWrapper`.
+Note that since `SPARQLWrapper.queries` runs async code under the hood, httpx2 client sharing or configuration requires setting `aclient` or `aclient_config` in the respective `SPARQLWrapper`.
 Also, `SPARQLWrapper.queries` creates an event loop and therefore cannot be called from asynchronous code.
 
-If an `httpx.AsyncClient` is supplied, the client will be closed after the first call to `SPARQLWrapper.queries`.
+If an `httpx2.AsyncClient` is supplied, the client will be closed after the first call to `SPARQLWrapper.queries`.
 
 User code that wants to run multiple calls to `queries` can still exert control over the client by using `aclient_config`. For finer control over concurrent query execution, use the async interface.
 
@@ -217,8 +217,8 @@ The streaming method and chunk size (for chunked responses) can be controlled wi
 
 `SPARQLWrapper` also implements the context manager protocol. This can be useful in two ways:
 
-- Managed Client: Unless an httpx client is passed, `SPARQLWrapper` creates and manages clients internally. In that case, the context manager uses a single client per context and enables connection pooling within the context.
-- Supplied Client: If an httpx client is passed, `SPARQLWrapper` will use that client instance and calling code is responsible for client management. In that case, the context manager will manage the supplied client.
+- Managed Client: Unless an httpx2 client is passed, `SPARQLWrapper` creates and manages clients internally. In that case, the context manager uses a single client per context and enables connection pooling within the context.
+- Supplied Client: If an httpx2 client is passed, `SPARQLWrapper` will use that client instance and calling code is responsible for client management. In that case, the context manager will manage the supplied client.
 
 ```python
 from sparqlx import SPARQLWrapper
@@ -228,21 +228,21 @@ sparql_wrapper = SPARQLWrapper(
 )
 
 with sparql_wrapper as context_wrapper:
-	result: httpx.Response = context_wrapper.query("select * where {?s ?p ?o} limit 10")
+	result: httpx2.Response = context_wrapper.query("select * where {?s ?p ?o} limit 10")
 ```
 
 ```python
-import httpx
+import httpx2
 from sparqlx import SPARQLWrapper
 
-client = httpx.Client()
+client = httpx2.Client()
 
 sparql_wrapper = SPARQLWrapper(
 	sparql_endpoint="https://query.wikidata.org/bigdata/namespace/wdq/sparql", client=client
 )
 
 with sparql_wrapper as context_wrapper:
-	result: httpx.Response = context_wrapper.query("select * where {?s ?p ?o} limit 10")
+	result: httpx2.Response = context_wrapper.query("select * where {?s ?p ?o} limit 10")
 
 	print(client.is_closed)  # False
 print(client.is_closed)  # True
@@ -263,14 +263,14 @@ The following methods implement SPARQL Update:
 Given an initially empty Triplestore with SPARQL and SPARQL Update endpoints, one could e.g. insert data like so:
 
 ```python
-import httpx
+import httpx2
 from sparqlx import SPARQLWrapper
 
 sparql_wrapper = SPARQLWrapper(
 	sparql_endpoint="https://triplestore/query",
 	update_endpoint="https://triplestore/update",
 	aclient_config = {
-		"auth": httpx.BasicAuth(username="admin", password="supersecret123")
+		"auth": httpx2.BasicAuth(username="admin", password="supersecret123")
 	}
 )
 
