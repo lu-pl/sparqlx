@@ -1,12 +1,12 @@
 import asyncio
-from contextlib import suppress
 import random
+from contextlib import suppress
 
-import httpx
+import httpx2
 import pytest
-from sparqlx.utils.client_manager import ClientManager
-
 from utils import as_async_cm
+
+from sparqlx.utils.client_manager import ClientManager
 
 
 def test_client_manager_automanaged_client():
@@ -33,7 +33,7 @@ def test_client_manager_automanaged_client():
 
 
 def test_client_shared_client():
-    shared_client = httpx.Client()
+    shared_client = httpx2.Client()
     client_manager = ClientManager(client=shared_client)
 
     assert client_manager.client is shared_client
@@ -97,7 +97,7 @@ async def test_client_manager_automanaged_aclient():
 
 @pytest.mark.asyncio
 async def test_client_manager_shared_aclient():
-    shared_aclient = httpx.AsyncClient()
+    shared_aclient = httpx2.AsyncClient()
     client_manager = ClientManager(aclient=shared_aclient)
 
     assert client_manager.aclient is shared_aclient
@@ -158,7 +158,7 @@ async def test_client_manager_automanaged_aclient_multi_coros():
 
 @pytest.mark.asyncio
 async def test_client_manager_shared_aclient_multi_coros():
-    shared_aclient = httpx.AsyncClient()
+    shared_aclient = httpx2.AsyncClient()
     client_manager = ClientManager(aclient=shared_aclient)
 
     async def coro(tag):
@@ -194,7 +194,7 @@ def test_client_manager_cleanup_automanaged_client():
 
 def test_client_manager_cleanup_shared_client():
     """Check that ClientManager.context does NOT close a shared client if an exceptional state occurs."""
-    shared_client = httpx.Client()
+    shared_client = httpx2.Client()
     client_manager = ClientManager(client=shared_client)
 
     with suppress(RuntimeError), client_manager.context() as client:
@@ -220,7 +220,7 @@ async def test_client_manager_cleanup_automanaged_aclient():
 @pytest.mark.asyncio
 async def test_client_manager_cleanup_shared_aclient():
     """Check that ClientManager.acontext does NOT close a shared aclient if an exceptional state occurs."""
-    shared_aclient = httpx.AsyncClient()
+    shared_aclient = httpx2.AsyncClient()
     client_manager = ClientManager(aclient=shared_aclient)
 
     async with (
