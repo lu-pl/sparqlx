@@ -2,12 +2,12 @@
 
 from typing import NamedTuple
 
+import httpx2
 import pytest
 from rdflib import Dataset, Graph, URIRef
-
-import httpx
-from sparqlx import SPARQLWrapper
 from utils import acall, sparql_result_set_equal
+
+from sparqlx import SPARQLWrapper
 
 
 class UpdateTestParameter(NamedTuple):
@@ -126,7 +126,7 @@ def test_sparqlwrapper_updates(update_method, fuseki_service):
     sparqlwrapper = SPARQLWrapper(
         sparql_endpoint=fuseki_service.sparql_endpoint,
         update_endpoint=fuseki_service.update_endpoint,
-        aclient_config={"auth": httpx.BasicAuth(username="admin", password="pm")},
+        aclient_config={"auth": httpx2.BasicAuth(username="admin", password="pm")},
         update_method=update_method,
     )
 

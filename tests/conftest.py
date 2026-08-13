@@ -4,7 +4,7 @@ import time
 from collections.abc import Iterator
 from typing import Protocol
 
-import httpx
+import httpx2
 import pytest
 from rdflib import Dataset, Graph
 from testcontainers.core.container import DockerContainer
@@ -38,10 +38,10 @@ class OxiGraphEndpoints(_TriplestoreEndpoints):
 def wait_for_service(url: str, timeout: int = 10) -> None:
     for _ in range(10):
         try:
-            response = httpx.get(url)
+            response = httpx2.get(url)
             if response.status_code == 200:
                 break
-        except httpx.RequestError:
+        except httpx2.RequestError:
             time.sleep(1)
         else:
             raise RuntimeError(
@@ -73,7 +73,7 @@ def oxigraph_service_with_data(oxigraph_service) -> Iterator[OxiGraphEndpoints]:
 
     oxigraph_endpoints = oxigraph_service
 
-    with httpx.Client() as client, open("tests/data/test_graphs.trig") as f:
+    with httpx2.Client() as client, open("tests/data/test_graphs.trig") as f:
         response = client.put(
             url=oxigraph_endpoints.graphstore_endpoint,
             headers={"Content-Type": "application/trig"},
@@ -125,9 +125,9 @@ def fuseki_service_with_data(fuseki_service) -> Iterator[FusekiEndpoints]:
     Note: For some reason, Fuseki does not accept DELETE to its GSP endpoint
     for deleting all graphs in the store. However, DROP ALL works just fine.
     """
-    auth = httpx.BasicAuth(username="admin", password="pw")
+    auth = httpx2.BasicAuth(username="admin", password="pw")
 
-    with httpx.Client(auth=auth) as client, open("tests/data/test_graphs.trig") as f:
+    with httpx2.Client(auth=auth) as client, open("tests/data/test_graphs.trig") as f:
         response = client.put(
             url=fuseki_service.graphstore_endpoint,
             content=f.read(),
