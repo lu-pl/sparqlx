@@ -1,25 +1,27 @@
-"""SPARQLWrapper: An httpx-based SPARQL 1.2 Protocol client."""
+"""SPARQLWrapper: An httpx2-based SPARQL 1.2 Protocol client."""
 
 import asyncio
+import functools
+import warnings
 from collections.abc import AsyncIterator, Callable, Iterator
 from contextlib import AbstractAsyncContextManager, AbstractContextManager
-import functools
-from typing import Literal as TLiteral, Self, overload
-import warnings
+from typing import Literal as TLiteral
+from typing import Self, overload
 
-import httpx
+import httpx2
 from rdflib import Dataset, Graph
+
 from sparqlx.types import (
     AskQuery,
     ConstructQuery,
     DescribeQuery,
     RDFParseSource,
     RequestDataValue,
+    SelectQuery,
     SPARQLQuery,
     SPARQLQueryTypeLiteral,
     SPARQLResponseFormat,
     SPARQLResultBinding,
-    SelectQuery,
 )
 from sparqlx.utils.client_manager import ClientManager
 from sparqlx.utils.operation_parameters import (
@@ -42,7 +44,7 @@ from sparqlx.utils.utils import (
 
 
 class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
-    """SPARQLWrapper: An httpx-based SPARQL 1.2 Protocol client.
+    """SPARQLWrapper: An httpx2-based SPARQL 1.2 Protocol client.
 
     The class provides functionality for running SPARQL Query and Update Operations
     according to the SPARQL 1.2 protocol and supports both sync and async interfaces.
@@ -52,9 +54,9 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         self,
         sparql_endpoint: str | Graph | None = None,
         update_endpoint: str | Graph | None = None,
-        client: httpx.Client | None = None,
+        client: httpx2.Client | None = None,
         client_config: dict | None = None,
-        aclient: httpx.AsyncClient | None = None,
+        aclient: httpx2.AsyncClient | None = None,
         aclient_config: dict | None = None,
         query_method: TLiteral["GET", "POST", "POST-direct"] = "POST",
         update_method: TLiteral["POST", "POST-direct"] = "POST",
@@ -177,7 +179,7 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         default_graph_uri: RequestDataValue = None,
         named_graph_uri: RequestDataValue = None,
         raise_for_status: bool = True,
-    ) -> httpx.Response: ...
+    ) -> httpx2.Response: ...
 
     def query(
         self,
@@ -188,7 +190,7 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         default_graph_uri: RequestDataValue = None,
         named_graph_uri: RequestDataValue = None,
         raise_for_status: bool = True,
-    ) -> httpx.Response | list[SPARQLResultBinding] | Graph | bool:
+    ) -> httpx2.Response | list[SPARQLResultBinding] | Graph | bool:
         query_type: SPARQLQueryTypeLiteral = _get_query_type(query=query)
 
         params: SPARQLOperationParameters = QueryOperationParametersConstructor(
@@ -208,10 +210,10 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
             else lambda response: response
         )
 
-        client_context: AbstractContextManager[httpx.Client] = (
+        client_context: AbstractContextManager[httpx2.Client] = (
             self._client_manager.context()
             if (graph := self._sparql_endpoint.graph) is None
-            else httpx.Client(
+            else httpx2.Client(
                 **self._client_config,
                 transport=RDFLibQueryTransport(
                     query=query,
@@ -296,7 +298,7 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         default_graph_uri: RequestDataValue = None,
         named_graph_uri: RequestDataValue = None,
         raise_for_status: bool = True,
-    ) -> httpx.Response: ...
+    ) -> httpx2.Response: ...
 
     async def aquery(
         self,
@@ -307,7 +309,7 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         default_graph_uri: RequestDataValue = None,
         named_graph_uri: RequestDataValue = None,
         raise_for_status: bool = True,
-    ) -> httpx.Response | list[SPARQLResultBinding] | Graph | bool:
+    ) -> httpx2.Response | list[SPARQLResultBinding] | Graph | bool:
         query_type: SPARQLQueryTypeLiteral = _get_query_type(query=query)
 
         params: SPARQLOperationParameters = QueryOperationParametersConstructor(
@@ -327,10 +329,10 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
             else lambda response: response
         )
 
-        aclient_context: AbstractAsyncContextManager[httpx.AsyncClient] = (
+        aclient_context: AbstractAsyncContextManager[httpx2.AsyncClient] = (
             self._client_manager.acontext()
             if (graph := self._sparql_endpoint.graph) is None
-            else httpx.AsyncClient(
+            else httpx2.AsyncClient(
                 **self._client_config,
                 transport=AsyncRDFLibQueryTransport(
                     query=query,
@@ -365,8 +367,8 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         default_graph_uri: RequestDataValue = None,
         named_graph_uri: RequestDataValue = None,
         streaming_method: Callable[
-            [httpx.Response], Iterator[T]
-        ] = httpx.Response.iter_bytes,
+            [httpx2.Response], Iterator[T]
+        ] = httpx2.Response.iter_bytes,
         chunk_size: int | None = None,
     ) -> Iterator[T]:
         if self._sparql_endpoint.graph is not None:
@@ -412,8 +414,8 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         default_graph_uri: RequestDataValue = None,
         named_graph_uri: RequestDataValue = None,
         streaming_method: Callable[
-            [httpx.Response], AsyncIterator[T]
-        ] = httpx.Response.aiter_bytes,
+            [httpx2.Response], AsyncIterator[T]
+        ] = httpx2.Response.aiter_bytes,
         chunk_size: int | None = None,
     ) -> AsyncIterator[T]:
         if self._sparql_endpoint.graph is not None:
@@ -473,7 +475,7 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         default_graph_uri: RequestDataValue = None,
         named_graph_uri: RequestDataValue = None,
         raise_for_status: bool = True,
-    ) -> Iterator[httpx.Response]: ...
+    ) -> Iterator[httpx2.Response]: ...
 
     def queries(
         self,
@@ -484,14 +486,14 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         default_graph_uri: RequestDataValue = None,
         named_graph_uri: RequestDataValue = None,
         raise_for_status: bool = True,
-    ) -> Iterator[httpx.Response | list[SPARQLResultBinding] | Graph | bool]:
+    ) -> Iterator[httpx2.Response | list[SPARQLResultBinding] | Graph | bool]:
         query_component = SPARQLWrapper(
             sparql_endpoint=self._sparql_endpoint._endpoint,
             aclient=self._client_manager.aclient,
             query_method=self._query_method,  # pyright: ignore
         )
 
-        async def _runner() -> Iterator[httpx.Response]:
+        async def _runner() -> Iterator[httpx2.Response]:
             acatch_warnings: AbstractAsyncContextManager[None] = as_async_context(
                 warnings.catch_warnings()
             )
@@ -534,7 +536,7 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         using_graph_uri: RequestDataValue = None,
         using_named_graph_uri: RequestDataValue = None,
         raise_for_status: bool = True,
-    ) -> httpx.Response:
+    ) -> httpx2.Response:
         params: SPARQLOperationParameters = UpdateOperationParametersConstructor(
             update_request=update_request,
             version=version,
@@ -542,10 +544,10 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
             using_named_graph_uri=using_named_graph_uri,
         ).get_params(method=self._update_method)  # pyright: ignore
 
-        client_context: AbstractContextManager[httpx.Client] = (
+        client_context: AbstractContextManager[httpx2.Client] = (
             self._client_manager.context()
             if (graph := self._update_endpoint.graph) is None
-            else httpx.Client(
+            else httpx2.Client(
                 **self._client_config,
                 transport=RDFLibUpdateTransport(
                     update_request=update_request,
@@ -579,7 +581,7 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         using_graph_uri: RequestDataValue = None,
         using_named_graph_uri: RequestDataValue = None,
         raise_for_status: bool = True,
-    ) -> httpx.Response:
+    ) -> httpx2.Response:
         params: SPARQLOperationParameters = UpdateOperationParametersConstructor(
             update_request=update_request,
             version=version,
@@ -587,10 +589,10 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
             using_named_graph_uri=using_named_graph_uri,
         ).get_params(method=self._update_method)  # pyright: ignore
 
-        aclient_context: AbstractAsyncContextManager[httpx.AsyncClient] = (
+        aclient_context: AbstractAsyncContextManager[httpx2.AsyncClient] = (
             self._client_manager.acontext()
             if (graph := self._update_endpoint.graph) is None
-            else httpx.AsyncClient(
+            else httpx2.AsyncClient(
                 **self._aclient_config,
                 transport=AsyncRDFLibUpdateTransport(
                     update_request=update_request,
@@ -624,14 +626,14 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         using_graph_uri: RequestDataValue = None,
         using_named_graph_uri: RequestDataValue = None,
         raise_for_status: bool = True,
-    ) -> Iterator[httpx.Response]:
+    ) -> Iterator[httpx2.Response]:
         update_component = SPARQLWrapper(
             update_endpoint=self._update_endpoint._endpoint,
             aclient=self._client_manager.aclient,
             update_method=self._update_method,  # pyright: ignore
         )
 
-        async def _runner() -> Iterator[httpx.Response]:
+        async def _runner() -> Iterator[httpx2.Response]:
             async with update_component, asyncio.TaskGroup() as tg:
                 tasks = [
                     tg.create_task(

@@ -1,13 +1,14 @@
-from collections.abc import Iterator
 import json
+from collections.abc import Iterator
 
-import httpx
+import httpx2
 from rdflib import BNode, Graph, Literal, URIRef
+
 from sparqlx.types import SPARQLResultBinding, SPARQLResultBindingValue
 
 
 def _convert_bindings(
-    response: httpx.Response,
+    response: httpx2.Response,
 ) -> list[SPARQLResultBinding]:
     """Get flat dicts from a SPARQL SELECT JSON response."""
 
@@ -53,10 +54,10 @@ def _convert_bindings(
     return [dict(_get_binding_pairs(binding)) for binding in response_bindings]
 
 
-def _convert_graph(response: httpx.Response) -> Graph:
+def _convert_graph(response: httpx2.Response) -> Graph:
     """Convert the content of an HTTP response to an rdflib.Graph.
 
-    Note: httpx.Response.headers is always an instance of httpx.Headers
+    Note: httpx2.Response.headers is always an instance of httpx2.Headers
     (a mutable mapping).
     """
     _format: str | None = (
@@ -69,5 +70,5 @@ def _convert_graph(response: httpx.Response) -> Graph:
     return graph
 
 
-def _convert_ask(response: httpx.Response) -> bool:
+def _convert_ask(response: httpx2.Response) -> bool:
     return response.json()["boolean"]

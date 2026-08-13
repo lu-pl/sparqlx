@@ -12,7 +12,6 @@ from rdflib.compat import long_type
 from rdflib.parser import InputSource
 from rdflib.xsd_datetime import Duration
 
-
 __all__ = (
     "RequestDataValue",
     "LiteralToPython",
@@ -38,10 +37,10 @@ This is the exact union type as defined in RDFLib.
 """
 
 type RequestDataValue = str | list[str] | tuple[str, ...] | None
-"""Value type for httpx.RequestValue type.
+"""Value type for httpx2.RequestValue type.
 
-See the httpx URL encoding function:
-https://github.com/encode/httpx/blob/4b23574cf83307ce27d3b14b4a425dc58c57d28d/httpx/_content.py#L136
+See the httpx2 URL encoding function:
+https://github.com/pydantic/httpx2/blob/a966320e75477b8c55ee78fdb8f57ead6a574cb0/src/httpx2/httpx2/_content.py#L131
 """
 
 type LiteralToPython = (

@@ -1,10 +1,11 @@
-"""Custom httpx.Transports for rdflb.Graph targets."""
+"""Custom httpx2.Transports for rdflb.Graph targets."""
 
 import asyncio
 
-import httpx
+import httpx2
 import pyparsing
 from rdflib import Graph
+
 from sparqlx.types import RequestDataValue, SPARQLQuery
 
 
@@ -28,7 +29,7 @@ class _RDFLibQueryTransportBase:
         self._query = query
         self._graph = graph
 
-    def _handle_request(self, request: httpx.Request) -> httpx.Response:
+    def _handle_request(self, request: httpx2.Request) -> httpx2.Response:
         _format = request.headers["Accept"]
 
         try:
@@ -36,7 +37,7 @@ class _RDFLibQueryTransportBase:
         except (
             pyparsing.exceptions.ParseBaseException
         ) as e:  # pragma: no cover ; this is currently unreachable
-            return httpx.Response(
+            return httpx2.Response(
                 status_code=400,
                 headers={
                     "Content-Type": "text/plain; charset=utf-8",
@@ -46,7 +47,7 @@ class _RDFLibQueryTransportBase:
                 content=str(e),
             )
         except Exception as e:
-            return httpx.Response(
+            return httpx2.Response(
                 status_code=500,
                 headers={
                     "Content-Type": "text/plain; charset=utf-8",
@@ -57,7 +58,7 @@ class _RDFLibQueryTransportBase:
             )
 
         else:
-            return httpx.Response(
+            return httpx2.Response(
                 status_code=200,
                 headers={
                     "Content-Type": _format,
@@ -68,17 +69,17 @@ class _RDFLibQueryTransportBase:
             )
 
 
-class RDFLibQueryTransport(_RDFLibQueryTransportBase, httpx.BaseTransport):
-    def handle_request(self, request: httpx.Request) -> httpx.Response:
+class RDFLibQueryTransport(_RDFLibQueryTransportBase, httpx2.BaseTransport):
+    def handle_request(self, request: httpx2.Request) -> httpx2.Response:
         return self._handle_request(request)
 
 
-class AsyncRDFLibQueryTransport(_RDFLibQueryTransportBase, httpx.AsyncBaseTransport):
-    async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
+class AsyncRDFLibQueryTransport(_RDFLibQueryTransportBase, httpx2.AsyncBaseTransport):
+    async def handle_async_request(self, request: httpx2.Request) -> httpx2.Response:
         return await asyncio.to_thread(self._handle_request, request)
 
 
-class _RDFLibUpdateTransportBase(httpx.BaseTransport):
+class _RDFLibUpdateTransportBase(httpx2.BaseTransport):
     def __init__(
         self,
         update_request: str,
@@ -98,11 +99,11 @@ class _RDFLibUpdateTransportBase(httpx.BaseTransport):
         self._update_request = update_request
         self._graph = graph
 
-    def _handle_request(self, request: httpx.Request) -> httpx.Response:
+    def _handle_request(self, request: httpx2.Request) -> httpx2.Response:
         try:
             self._graph.update(self._update_request)
         except pyparsing.exceptions.ParseBaseException as e:
-            return httpx.Response(
+            return httpx2.Response(
                 status_code=400,
                 headers={
                     "Content-Type": "text/plain; charset=utf-8",
@@ -112,7 +113,7 @@ class _RDFLibUpdateTransportBase(httpx.BaseTransport):
                 content=str(e),
             )
         except Exception as e:
-            return httpx.Response(
+            return httpx2.Response(
                 status_code=500,
                 headers={
                     "Content-Type": "text/plain; charset=utf-8",
@@ -123,7 +124,7 @@ class _RDFLibUpdateTransportBase(httpx.BaseTransport):
             )
 
         else:
-            return httpx.Response(
+            return httpx2.Response(
                 status_code=200,
                 headers={
                     "Content-Length": "0",
@@ -135,11 +136,11 @@ class _RDFLibUpdateTransportBase(httpx.BaseTransport):
             )
 
 
-class RDFLibUpdateTransport(_RDFLibUpdateTransportBase, httpx.BaseTransport):
-    def handle_request(self, request: httpx.Request) -> httpx.Response:
+class RDFLibUpdateTransport(_RDFLibUpdateTransportBase, httpx2.BaseTransport):
+    def handle_request(self, request: httpx2.Request) -> httpx2.Response:
         return self._handle_request(request)
 
 
-class AsyncRDFLibUpdateTransport(_RDFLibUpdateTransportBase, httpx.AsyncBaseTransport):
-    async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
+class AsyncRDFLibUpdateTransport(_RDFLibUpdateTransportBase, httpx2.AsyncBaseTransport):
+    async def handle_async_request(self, request: httpx2.Request) -> httpx2.Response:
         return await asyncio.to_thread(self._handle_request, request)
