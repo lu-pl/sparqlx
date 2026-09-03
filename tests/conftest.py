@@ -54,11 +54,7 @@ def wait_for_service(url: str, timeout: int = 10) -> None:
 def oxigraph_service() -> Iterator[OxiGraphEndpoints]:
     """Fixture that starts an Oxigraph Triplestore container and exposes an Endpoint object."""
 
-    # note: Oxigraph image is currently hardcoded to 0.5.7 because of a possible bug in 0.5.8 and later
-    # see https://github.com/oxigraph/oxigraph/issues/1862
-    with DockerContainer("oxigraph/oxigraph:0.5.7").with_exposed_ports(
-        7878
-    ) as container:
+    with DockerContainer("oxigraph/oxigraph").with_exposed_ports(7878) as container:
         host = container.get_container_host_ip()
         port = container.get_exposed_port(7878)
         oxigraph_endpoints = OxiGraphEndpoints(host=host, port=port)
