@@ -3,9 +3,7 @@ on:
     branches:
       - main
 
-permissions:
-  contents: write
-  pull-requests: write
+permissions: {}
 
 name: release-please
 
@@ -13,8 +11,10 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     steps:
-      - uses: googleapis/release-please-action@v3
+      - uses: googleapis/release-please-action@16a9c90856f42705d54a6fda1823352bdc62cf38 # v4.4.0
         with:
           release-type: python
-          package-name: sparqlx
-          bump-minor-pre-major: true
+          manifest-file: .release-manifest.json
+  permissions:
+    contents: write
+    pull-requests: write
