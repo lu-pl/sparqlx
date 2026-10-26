@@ -117,11 +117,18 @@ async def test_sparqlwrapper_update(
         assert sparql_result_set_equal(result_after_update, param.expected)
 
 
+@pytest.mark.filterwarnings("error")
 @pytest.mark.parametrize("update_method", ["POST", "POST-direct"])
 def test_sparqlwrapper_updates(update_method, fuseki_service):
     """Basic test for SPARQLWrapper.updates.
 
     Note: This test runs against a Fuseki Triplestore to also test auth for updates.
+
+    The test also checks that no client manager warnings are emitted from
+    SPARQLWrapper.updates. This is achieved via the filterwarnings marker,
+    which turns any warning raised during the test into an error; i.e. if no
+    warning is emitted, the test passes because no exception is raised.
+    See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#pytest-mark-filterwarnings.
     """
     sparqlwrapper = SPARQLWrapper(
         sparql_endpoint=fuseki_service.sparql_endpoint,
