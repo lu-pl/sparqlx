@@ -634,7 +634,21 @@ class SPARQLWrapper(AbstractContextManager, AbstractAsyncContextManager):
         )
 
         async def _runner() -> Iterator[httpx2.Response]:
-            async with update_component, asyncio.TaskGroup() as tg:
+            acatch_warnings: AbstractAsyncContextManager[None] = as_async_context(
+                warnings.catch_warnings()
+            )
+
+            async with (
+                acatch_warnings,
+                update_component,
+                asyncio.TaskGroup() as tg,
+            ):
+                warnings.filterwarnings(
+                    action="ignore",
+                    category=UserWarning,
+                    module="sparqlx.utils.client_manager",
+                )
+
                 tasks = [
                     tg.create_task(
                         update_component.aupdate(
