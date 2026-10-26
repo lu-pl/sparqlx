@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.11.0](https://github.com/lu-pl/sparqlx/compare/v0.10.1...v0.11.0) (2026-10-26)
+
+
+### ⚠ BREAKING CHANGES
+
+* migrate sparqlx src from httpx to httpx2
+
+### Miscellaneous Chores
+
+* migrate sparqlx src from httpx to httpx2 ([7e5364e](https://github.com/lu-pl/sparqlx/commit/7e5364ea731300baf7029e3fcf28f1c9ecef6715))
+
 ## [0.10.1](https://github.com/lu-pl/sparqlx/compare/v0.10.0...v0.10.1) (2026-08-11)
 
 
