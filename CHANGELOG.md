@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.0](https://github.com/lu-pl/sparqlx/compare/v0.11.0...v0.12.0) (2026-10-26)
+
+
+### Features
+
+* **sparql-update:** suppress warnings in `SPARQLWrapper.updates` ([72fba83](https://github.com/lu-pl/sparqlx/commit/72fba83621753f7d21bd8941d41bb3abf7475971))
+
 ## [0.11.0](https://github.com/lu-pl/sparqlx/compare/v0.10.1...v0.11.0) (2026-10-26)
 
 
